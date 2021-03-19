@@ -1,2 +1,0 @@
-# IdentityManager
-Identity Manager Solution

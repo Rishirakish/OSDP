@@ -1,1 +1,2 @@
-# OSDP
+# IdentityManager
+Identity Manager Solution
