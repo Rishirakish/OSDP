@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Neubel.Wow.Win.Authentication.WebAPI</name>
+    </assembly>
+    <members>
+        <member name="M:Neubel.Wow.Win.Authentication.WebAPI.Controllers.SecurityController.Token(Neubel.Wow.Win.Authentication.WebAPI.DTO.LoginRequest)">
+            <summary>
+            Get the access and refresh token after authentication.
+            </summary>
+            <param name="loginRequest"></param>
+            <returns></returns>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.LoginRequest.UserName">
+            <summary>
+            User Name
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.LoginRequest.Password">
+            <summary>
+            User Name
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.UserName">
+            <summary>
+            User Name.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.Password">
+            <summary>
+            Password
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.FirstName">
+            <summary>
+            First Name.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.LastName">
+            <summary>
+            Last Name.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.Email">
+            <summary>
+            Email Address.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.Mobile">
+            <summary>
+            Mobile.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.Country">
+            <summary>
+            Country.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.ISDCode">
+            <summary>
+            IsdCode.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.TwoFactor">
+            <summary>
+            TwoFactor is enabled or not.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.Locked">
+            <summary>
+            Account locked or not.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.IsActive">
+            <summary>
+            Is Active.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.EmailValidationStatus">
+            <summary>
+            Email Validation Status
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.MobileValidationStatus">
+            <summary>
+            Mobile Validation Status
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.OrgId">
+            <summary>
+            Organization Id.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.User.AdminLevel">
+            <summary>
+            Admin Level.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.UserToken.AccessToken">
+            <summary>
+            Access Token.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.UserToken.AccessTokenExpiry">
+            <summary>
+            Access Token Expiry.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.UserToken.RefreshToken">
+            <summary>
+            Refresh Token.
+            </summary>
+        </member>
+        <member name="P:Neubel.Wow.Win.Authentication.WebAPI.DTO.UserToken.RefreshTokenExpiry">
+            <summary>
+            Refresh Token Expiry.
+            </summary>
+        </member>
+    </members>
+</doc>
