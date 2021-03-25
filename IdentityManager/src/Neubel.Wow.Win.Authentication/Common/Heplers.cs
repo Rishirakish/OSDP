@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Security.Cryptography;
 using System.Text;
+using Neubel.Wow.Win.Authentication.Core.Model;
 
 namespace Neubel.Wow.Win.Authentication.Common
 {
@@ -8,6 +9,96 @@ namespace Neubel.Wow.Win.Authentication.Common
 	{
 		private static char[] charSet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
 
+        private static bool ValidateMinimumSmallChars(string password, int expectedCount)
+        {
+            int smallCharCount = 0;
+            foreach (char c in password)
+            {
+                if (c >= 'a' && c <= 'z')
+                {
+                    smallCharCount++;
+					if (expectedCount == smallCharCount)
+						return true;
+                }
+            }
+			return false;
+		}
+        private static bool ValidateMinimumCapsChars(string password, int expectedCount)
+        {
+            int capsCharCount = 0;
+            foreach (char c in password)
+            {
+                if (c >= 'A' && c <= 'Z')
+                {
+                    capsCharCount++;
+					if (expectedCount == capsCharCount)
+						return true;
+                }
+            }
+			return false;
+		}
+        private static bool ValidateMinimumSpecialChars(string password, int expectedCount)
+        {
+            int minSpecialCharCount = 0;
+            char[] special = { '@', '#', '$', '%', '^', '&', '+', '=' };
+			foreach (char c in special)
+            {
+                if (password.IndexOf(c) != -1)
+                {
+                    minSpecialCharCount++;
+                    if (expectedCount == minSpecialCharCount)
+                        return true;
+                }
+            }
+            return false;
+        }
+		private static bool ValidateMinimumDigits(string password, int expectedCount)
+        {
+            int minDigitCount = 0;
+            foreach (char c in password)
+            {
+                if (c >= '0' && c <= '9')
+                {
+                    minDigitCount++;
+                    if (expectedCount == minDigitCount)
+                        return true;
+                }
+            }
+            return false;
+        }
+		private static bool ValidateDisallowedChars(string password, string disallowedChars)
+        {
+            foreach (char c in disallowedChars)
+            {
+                if (password.IndexOf(c) != -1)
+                {
+					return false;
+                }
+            }
+            return true;
+		}
+		public static bool ValidatePassword(string password, SecurityParameter securityParameter)
+        {
+			if (password.Length < securityParameter.MinLength)
+				return false;
+
+			if (!ValidateMinimumSmallChars(password, securityParameter.MinSmallChars))
+				return false;
+
+            if (!ValidateMinimumCapsChars(password, securityParameter.MinCaps))
+                return false;
+
+            if (!ValidateMinimumDigits(password, securityParameter.MinNumber))
+                return false;
+
+            if (!ValidateMinimumSpecialChars(password, securityParameter.MinNumber))
+                return false;
+
+            if (!ValidateDisallowedChars(password, securityParameter.DisAllowedChars))
+                return false;
+
+            return true;
+        }
 		public static bool IsEmail(string email)
 		{
 			return System.Text.RegularExpressions.Regex.IsMatch(email, @"\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*");

@@ -21,10 +21,10 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
             return db.Query<SecurityParameter>("Select * From [PasswordPolicy]").ToList();
         }
 
-        public SecurityParameter Get(int id)
+        public SecurityParameter Get(int orgId)
         {
             using IDbConnection db = _connectionFactory.GetConnection;
-            return db.Query<SecurityParameter>("Select * From [PasswordPolicy] where Id=@id", new { id }).FirstOrDefault();
+            return db.Query<SecurityParameter>("Select * From [PasswordPolicy] where OrgId=@orgId", new { orgId }).FirstOrDefault();
         }
 
         public int Insert(SecurityParameter securityParameter)

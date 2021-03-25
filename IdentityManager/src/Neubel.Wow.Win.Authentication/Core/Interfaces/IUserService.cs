@@ -11,7 +11,7 @@ namespace Neubel.Wow.Win.Authentication.Core.Interfaces
         /// <param name="user"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        int Insert(User user, string password);
+        bool Insert(User user, string password);
 
         /// <summary>
         /// Update user.

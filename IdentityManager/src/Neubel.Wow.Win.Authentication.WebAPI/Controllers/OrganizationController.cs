@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
@@ -17,6 +18,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             _mapper = mapper;
         }
 
+        [Authorize(Roles = Core.Model.UserRoles.Admin)]
         [HttpGet]
         public IActionResult Get()
         {
@@ -25,6 +27,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             return Ok(organizationsDto);
         }
 
+        [Authorize(Roles = Core.Model.UserRoles.Admin)]
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
@@ -33,6 +36,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             return Ok(organizationDto);
         }
 
+        [Authorize(Roles = Core.Model.UserRoles.Admin)]
         [HttpPost]
         public IActionResult Post(DTO.Organization organization)
         {
@@ -43,6 +47,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 
         // PUT api/<OrganizationController>/5
         [HttpPut("{id}")]
+        [Authorize(Roles = Core.Model.UserRoles.Admin)]
         public IActionResult Put(int id, [FromBody] DTO.Organization organization)
         {
             var updatedOrganization = _mapper.Map<DTO.Organization, Core.Model.Organization>(organization);
@@ -50,6 +55,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = Core.Model.UserRoles.Admin)]
         public IActionResult Delete(int id)
         {
             bool result = _organizationService.Delete(id);

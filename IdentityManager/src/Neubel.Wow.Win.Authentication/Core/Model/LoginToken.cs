@@ -9,6 +9,10 @@ namespace Neubel.Wow.Win.Authentication.Core.Model
         /// </summary>
         public int UserId { get; set; }
         /// <summary>
+        /// User Name.
+        /// </summary>
+        public string UserName { get; set; }
+        /// <summary>
         /// Access Token.
         /// </summary>
         public string AccessToken { get; set; }

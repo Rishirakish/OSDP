@@ -9,15 +9,24 @@ namespace Neubel.Wow.Win.Authentication.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        public UserService(IUserRepository userRepository)
+        private readonly ISecurityParameterRepository _securityParameterRepository;
+        public UserService(IUserRepository userRepository, ISecurityParameterRepository securityParameterRepository)
         {
             _userRepository = userRepository;
+            _securityParameterRepository = securityParameterRepository;
         }
 
-        public int Insert(User user, string password)
+        public bool Insert(User user, string password)
         {
-            PasswordLogin passwordLogin = Hasher.HashPassword(password);
-            return _userRepository.Insert(user, passwordLogin);
+            var passwordPolicy = _securityParameterRepository.Get(user.OrgId);
+            if (Helpers.ValidatePassword(password, passwordPolicy))
+            {
+                PasswordLogin passwordLogin = Hasher.HashPassword(password);
+                _userRepository.Insert(user, passwordLogin);
+                return true;
+            }
+
+            return false;
         }
 
         public int Update(int id, User user)

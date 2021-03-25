@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Linq;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neubel.Wow.Win.Authentication.Core.Model;
 using Neubel.Wow.Win.Authentication.WebAPI.DTO;
@@ -25,10 +27,26 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <returns></returns>
         [Route("token")]
         [HttpPost]
-        public ActionResult<UserToken> Token(DTO.LoginRequest loginRequest)
+        public IActionResult Token(DTO.LoginRequest loginRequest)
         {
             var loginReq = _mapper.Map<DTO.LoginRequest, Core.Model.LoginRequest>(loginRequest);
-            var loginToken = _authenticationService.Login(loginReq);
+            LoginToken loginToken = _authenticationService.Login(loginReq);
+            if (loginToken == null)
+                return Unauthorized();
+
+            var userToken = _mapper.Map<LoginToken, UserToken>(loginToken);
+
+            return Ok(userToken);
+        }
+
+        [Route("refreshToken")]
+        [Authorize]
+        [HttpPut]
+        public IActionResult RefreshToken()
+        {
+            string authorization = HttpContext.Request.Headers["Authorization"].SingleOrDefault();
+
+            LoginToken loginToken = _authenticationService.RefreshToken(authorization);
             if (loginToken == null)
                 return Unauthorized();
 
@@ -39,51 +57,63 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 
         [Route("forgotPassword")]
         [HttpPost]
-        public ActionResult ForgotPassword()
+        public IActionResult ForgotPassword(string userName)
         {
-            return null;
+           bool isSuccess = _authenticationService.ForgotPassword(userName);
+           return Ok(isSuccess);
         }
 
         [Route("changePassword")]
         [HttpPost]
-        public ActionResult ChangePassword(DTO.ChangedPassword changedPassword)
+        public IActionResult ChangePassword(DTO.ChangedPassword changedPassword)
         {
             var newPassword = _mapper.Map<DTO.ChangedPassword, Core.Model.ChangedPassword>(changedPassword);
             bool result = _authenticationService.ChangePassword(newPassword);
             return Ok(result);
         }
 
-        [Route("confirmEmail")]
+        [Route("sendOtp")]
         [HttpPost]
-        public ActionResult ConfirmEmail()
+        public IActionResult SendOTP(string userName)
         {
-            return null;
+            bool result = _authenticationService.SendOtp(userName);
+            return Ok(result);
+        }
+
+        [Route("validateOtp")]
+        [HttpPost]
+        public IActionResult ValidateOtp(string userName, string otp)
+        {
+            bool result = _authenticationService.validateOtp(userName, otp);
+            return Ok(result);
         }
 
         [Route("confirmMobile")]
         [HttpPost]
-        public ActionResult ConfirmMobile()
+        public IActionResult ConfirmMobile(string userName, string otp)
         {
-            return null;
+            bool result = _authenticationService.validateOtp(userName, otp);
+            return Ok(result);
         }
 
-        [Route("sendOtp")]
+        [Route("confirmEmail")]
         [HttpPost]
-        public ActionResult SendOTP()
+        public IActionResult ConfirmEmail(string userName, string otp)
         {
-            return null;
+            bool result = _authenticationService.validateOtp(userName, otp);
+            return Ok(result);
         }
 
         [Route("loginHistory")]
         [HttpGet]
-        public ActionResult LoginHistory()
+        public IActionResult LoginHistory(int userId)
         {
-            return null;
+            return Ok(_authenticationService.GetLoginHistory(userId));
         }
         
         [Route("lock")]
         [HttpPost]
-        public ActionResult Lock(string userName)
+        public IActionResult Lock(string userName)
         {
             bool result = _authenticationService.LockUnlockUser(new LockUnlockUser { UserName = userName, Locked = true });
             return Ok(result);
@@ -91,7 +121,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 
         [Route("unLock")]
         [HttpPost]
-        public ActionResult UnLock(string userName)
+        public IActionResult UnLock(string userName)
         {
             bool result = _authenticationService.LockUnlockUser(new LockUnlockUser { UserName = userName, Locked = false});
             return Ok(result);

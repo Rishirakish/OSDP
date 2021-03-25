@@ -16,12 +16,14 @@ namespace Neubel.Wow.Win.Authentication.Services
     {
         private readonly IConfiguration _configuration;
         private readonly IRoleService _roleService;
+        private readonly IUserRepository _userRepository;
         private readonly IAuthenticationRepository _authenticationRepository;
-        public AuthenticationService(IConfiguration configuration, IRoleService roleService, IUserRepository userRepository, IAuthenticationRepository authenticationRepository)
+        public AuthenticationService(IConfiguration configuration, IRoleService roleService, IAuthenticationRepository authenticationRepository, IUserRepository userRepository)
         {
             _configuration = configuration;
             _roleService = roleService;
             _authenticationRepository = authenticationRepository;
+            _userRepository = userRepository;
         }
 
 
@@ -29,38 +31,48 @@ namespace Neubel.Wow.Win.Authentication.Services
 
         public LoginToken Login(LoginRequest loginRequest)
         {
+            LoginToken token = new LoginToken();
             var passwordLogin = _authenticationRepository.GetLoginPassword(loginRequest.UserName);
             string valueHash = string.Empty;
             if (passwordLogin != null && Hasher.ValidateHash(loginRequest.Password, passwordLogin.PasswordSalt, passwordLogin.PasswordHash, out valueHash))
             {
-                return GenerateTokens(loginRequest.UserName);
+                loginRequest.Id = passwordLogin.UserId;
+                token = GenerateTokens(loginRequest.UserName);
             }
-
+            
+            //TODO: this should be a async operation and can be made more cross-cutting design feature rather than calling inside the actual feature.
             loginRequest.LoginDate = DateTime.Now;
             loginRequest.PasswordHash = valueHash;
             _authenticationRepository.LoginLog(loginRequest);
 
-            return null;
+            return token;
         }
 
         public bool ChangePassword(ChangedPassword newPassword)
         {
             PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(newPassword.UserName);
-            string valueHash;
-            if (Hasher.ValidateHash(newPassword.CurrentPassword, passwordLogin.PasswordSalt, passwordLogin.PasswordHash, out valueHash))
+            if (Hasher.ValidateHash(newPassword.CurrentPassword, passwordLogin.PasswordSalt, passwordLogin.PasswordHash, out _))
             {
                 var newPasswordLogin = Hasher.HashPassword(newPassword.NewPassword);
                 newPasswordLogin.UserId = passwordLogin.UserId;
-                return _authenticationRepository.UpdatePasswordLogin(newPasswordLogin);
+                _authenticationRepository.UpdatePasswordLogin(newPasswordLogin);
             }
+            //TODO: this should be a async operation and can be made more cross-cutting design feature rather than calling inside the actual feature.
+            _authenticationRepository.PasswordChangeLog(passwordLogin);
             return false;
         }
 
         public bool LockUnlockUser(LockUnlockUser lockUnlockUser)
         {
-            return _authenticationRepository.LockUnlockUser(lockUnlockUser);
+            var isSuccess = _authenticationRepository.LockUnlockUser(lockUnlockUser);
+            _authenticationRepository.LockedUserLog(lockUnlockUser);
+            return isSuccess;
         }
 
+        public List<LoginHistory> GetLoginHistory(int userId)
+        {
+            return _authenticationRepository.GetLoginHistory(userId);
+        }
         #endregion
 
         #region Private Methods
@@ -91,20 +103,22 @@ namespace Neubel.Wow.Win.Authentication.Services
                 signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
             );
             var encodedRefreshJwt = new JwtSecurityTokenHandler().WriteToken(refreshJwt);
-
-            //var token = new TokenRepository(Startup.connString);
-            //token.AddForUser(email, "access", encodedAccessJwt);
-            //token.AddForUser(email, "refresh", encodedRefreshJwt);
-
-            var result = new LoginToken
+            
+            var loginToken = new LoginToken
             {
+                UserName = userName,
                 AccessToken = encodedAccessJwt,
                 AccessTokenExpiry = DateTime.Now.AddDays(1),
                 RefreshToken = encodedRefreshJwt,
                 RefreshTokenExpiry = DateTime.Now.AddDays(30),
             };
 
-            return result;
+            _authenticationRepository.SaveLoginToken(loginToken);
+
+            //TODO: this should be a async operation and can be made more cross-cutting design feature rather than calling inside the actual feature.
+            _authenticationRepository.LoginTokenLog(loginToken);
+
+            return loginToken;
         }
         private List<Claim> GetTokenClaims(string sub, DateTime dateTime)
         {
@@ -125,6 +139,73 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
 
             return claims;
+        }
+
+        public LoginToken RefreshToken(string authorization)
+        {
+            var token = authorization.Substring(authorization.IndexOf(' ') + 1);
+
+            if (new JwtSecurityTokenHandler().ReadToken(token) is JwtSecurityToken jwt) 
+                return GenerateTokens(jwt.Subject);
+
+            return null;
+        }
+
+        public bool SendOtp(string userName)
+        {
+            PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(userName);
+            var user = _userRepository.Get(passwordLogin.UserId);
+            string otp = GenericUtil.GenerateOTP().ToString();
+            new KromeEmail().SendEmail(user.Email, otp, GenericUtil.OTPTransType.PasswordReset);
+            new KromeSMS().SendSMS(user.Mobile, otp, GenericUtil.OTPTransType.PasswordReset);
+
+            UserValidationOtp userValidationOtp = new UserValidationOtp
+            {
+                UserId = passwordLogin.UserId,
+                OrgId = user.OrgId,
+                otp = otp,
+                OtpAuthenticatedTime = DateTime.Now,
+                OtpGeneratedTime = DateTime.Now,
+                Status = (int)GenericUtil.OTPTransType.PasswordReset,
+                Type = GenericUtil.OTPTransType.PasswordReset.ToString()
+            };
+
+            _authenticationRepository.SaveOtp(userValidationOtp);
+
+            return true;
+        }
+
+        public bool ForgotPassword(string userName)
+        {
+            PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(userName);
+            var user = _userRepository.Get(passwordLogin.UserId);
+            string otp = GenericUtil.GenerateOTP().ToString();
+            new KromeEmail().SendEmail(user.Email, otp, GenericUtil.OTPTransType.PasswordReset);
+            new KromeSMS().SendSMS(user.Mobile, otp, GenericUtil.OTPTransType.PasswordReset);
+
+            UserValidationOtp userValidationOtp = new UserValidationOtp
+            {
+                UserId = passwordLogin.UserId,
+                OrgId = user.OrgId,
+                otp = otp,
+                OtpAuthenticatedTime = DateTime.Now,
+                OtpGeneratedTime = DateTime.Now,
+                Status = (int) GenericUtil.OTPTransType.PasswordReset,
+                Type = GenericUtil.OTPTransType.PasswordReset.ToString()
+            };
+
+            _authenticationRepository.SaveOtp(userValidationOtp);
+
+            return true;
+        }
+
+        public bool validateOtp(string userName, string otp)
+        {
+            PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(userName);
+            var otpDetails = _authenticationRepository.GetOtp(passwordLogin.UserId);
+            if (otpDetails.otp == otp)
+                return true;
+            return false;
         }
 
         #endregion

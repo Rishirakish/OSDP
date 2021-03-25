@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
@@ -17,6 +18,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             _mapper = mapper;
         }
 
+        [Authorize(Roles = Core.Model.UserRoles.Admin)]
         [HttpGet]
         public IActionResult Get()
         {
@@ -25,6 +27,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             return Ok(userDto);
         }
 
+        [Authorize(Roles = Core.Model.UserRoles.Admin)]
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
@@ -33,6 +36,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             return Ok(userDto);
         }
 
+        //[Authorize(Roles = UserRoles.Admin)]
         [HttpPost]
         public IActionResult Post(DTO.User user)
         {
@@ -43,6 +47,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 
         // PUT api/<UserController>/5
         [HttpPut("{id}")]
+        [Authorize(Roles = Core.Model.UserRoles.Admin)]
         public IActionResult Put(int id, [FromBody] DTO.User user)
         {
             var updatedUser = _mapper.Map<DTO.User, Core.Model.User>(user);
@@ -50,6 +55,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = Core.Model.UserRoles.Admin)]
         public IActionResult Delete(int id)
         {
             bool result = _userService.Delete(id);
@@ -58,6 +64,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 
         [HttpPost]
         [Route("activate")]
+        [Authorize(Roles = Core.Model.UserRoles.Admin)]
         public IActionResult Activate(string userName)
         {
             bool result = _userService.ActivateDeactivateUser(new Core.Model.ActivateDeactivateUser{ UserName = userName, IsActive = true});
@@ -66,6 +73,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 
         [HttpPost]
         [Route("deactivate")]
+        [Authorize(Roles = Core.Model.UserRoles.Admin)]
         public IActionResult Deactivate(string userName)
         {
             bool result = _userService.ActivateDeactivateUser(new Core.Model.ActivateDeactivateUser { UserName = userName, IsActive = false });
