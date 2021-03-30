@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Neubel.Wow.Win.Authentication.Core.Model;
 
 namespace Neubel.Wow.Win.Authentication.Core.Interfaces

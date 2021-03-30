@@ -1,23 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Neubel.Wow.Win.Authentication.WebAPI.DTO
+﻿namespace Neubel.Wow.Win.Authentication.WebAPI.DTO
 {
     /// <summary>
-    /// Change password details.
+    /// Forgot Password 
     /// </summary>
-    public class ChangedPassword
+    public class ForgotPassword
     {
         /// <summary>
         /// User Name
         /// </summary>
         public string UserName { get; set; }
         /// <summary>
-        /// Current Password
+        /// OTP
         /// </summary>
-        public string CurrentPassword { get; set; }
+        public string otp { get; set; }
         /// <summary>
         /// New Password
         /// </summary>

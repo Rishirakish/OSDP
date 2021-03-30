@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 namespace Neubel.Wow.Win.Authentication.WebAPI.DTO
 {
     /// <summary>
-    /// Roles details.
+    /// Refreshed Access Token
     /// </summary>
-    public class Role
+    public class RefreshedAccessToken
     {
         /// <summary>
-        /// Role Name.
+        /// Access Token.
         /// </summary>
-        public string Name { get; set; }
+        public string AccessToken { get; set; }
         /// <summary>
-        /// Tole level.
+        /// Access Token Expiry.
         /// </summary>
-        public int Level { get; set; }
+        public DateTime AccessTokenExpiry { get; set; }
     }
 }

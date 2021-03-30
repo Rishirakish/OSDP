@@ -20,6 +20,7 @@ namespace Neubel.Wow.Win.Authentication.Infrastructure
                 DbProviderFactories.RegisterFactory("System.Data.SqlClient", System.Data.SqlClient.SqlClientFactory.Instance);
                 var factory = DbProviderFactories.GetFactory("System.Data.SqlClient");
                 var conn = factory.CreateConnection();
+                if (conn == null) return null;
                 conn.ConnectionString = _configuration["ConnectionStrings:IdentityDB"];
                 conn.Open();
                 return conn;

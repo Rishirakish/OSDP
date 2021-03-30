@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Interfaces;
 using Neubel.Wow.Win.Authentication.Core.Model;
@@ -16,50 +17,95 @@ namespace Neubel.Wow.Win.Authentication.Services
             _securityParameterRepository = securityParameterRepository;
         }
 
+        #region Public Methods.
         public bool Insert(User user, string password)
         {
-            var passwordPolicy = _securityParameterRepository.Get(user.OrgId);
-            if (Helpers.ValidatePassword(password, passwordPolicy))
+            try
             {
-                PasswordLogin passwordLogin = Hasher.HashPassword(password);
-                _userRepository.Insert(user, passwordLogin);
-                return true;
+                var passwordPolicy = _securityParameterRepository.Get(user.OrgId);
+                if (Helpers.ValidatePassword(password, passwordPolicy))
+                {
+                    PasswordLogin passwordLogin = Hasher.HashPassword(password);
+                    _userRepository.Insert(user, passwordLogin);
+                    return true;
+                }
+
+                return false;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return false;
+            }
         }
-
         public int Update(int id, User user)
         {
-            User savedUser = _userRepository.Get(id);
-            if (savedUser != null)
+            try
             {
-                user.Id = id;
-                if (!savedUser.Equals(user))
-                   return _userRepository.Update(user);
+                User savedUser = _userRepository.Get(id);
+                if (savedUser != null)
+                {
+                    user.Id = id;
+                    if (!savedUser.Equals(user))
+                        return _userRepository.Update(user);
+                }
+
+                return 0;
             }
-
-            return 0;
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return 0;
+            }
         }
-
         public List<User> Get()
         {
-            return _userRepository.Get();
+            try
+            {
+                return _userRepository.Get();
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return null;
+            }
         }
-
         public User Get(int id)
         {
-            return _userRepository.Get(id);
+            try
+            {
+                return _userRepository.Get(id);
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return null;
+            }
         }
-
         public bool ActivateDeactivateUser(ActivateDeactivateUser activateDeactivateUser)
         {
-            return _userRepository.ActivateDeactivateUser(activateDeactivateUser);
+            try
+            {
+                return _userRepository.ActivateDeactivateUser(activateDeactivateUser);
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return false;
+            }
         }
-
         public bool Delete(int id)
         {
-            return _userRepository.Delete(id);
+            try
+            {
+                return _userRepository.Delete(id);
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return false;
+            }
         }
+        #endregion
     }
 }

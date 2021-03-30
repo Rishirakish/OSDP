@@ -14,7 +14,8 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
         {
             _connectionFactory = connectionFactory;
         }
-        
+
+        #region Public Methods.
         public List<SecurityParameter> Get()
         {
             using IDbConnection db = _connectionFactory.GetConnection;
@@ -64,5 +65,6 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
             db.Execute(query, new { IsDeleted = true, Id = id });
             return true;
         }
+        #endregion
     }
 }

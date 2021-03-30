@@ -9,9 +9,11 @@ namespace Neubel.Wow.Win.Authentication.Core.Interfaces
         bool ChangePassword(ChangedPassword newPassword);
         bool LockUnlockUser(LockUnlockUser lockUnlockUser);
         List<LoginHistory> GetLoginHistory(int userId);
-        LoginToken RefreshToken(string authorization);
-        bool ForgotPassword(string userName);
+        RefreshedAccessToken RefreshToken(string authorization);
+        bool ForgotPassword(ForgotPassword forgotPassword);
         bool SendOtp(string userName);
-        bool validateOtp(string userName, string otp);
+        bool ValidateOtp(string userName, string otp);
+        bool UpdateMobileConfirmationStatus(string userName, string otp);
+        bool UpdateEmailConfirmationStatus(string userName, string otp);
     }
 }

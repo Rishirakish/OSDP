@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Neubel.Wow.Win.Authentication.Core.Interfaces;
 using Neubel.Wow.Win.Authentication.Core.Model;
 using Neubel.Wow.Win.Authentication.Data.Repository;
@@ -13,36 +14,75 @@ namespace Neubel.Wow.Win.Authentication.Services
             _organizationRepository = organizationRepository;
         }
 
+        #region Public Methods.
         public int Insert(Organization organization)
         {
-            return _organizationRepository.Insert(organization);
+            try
+            {
+                return _organizationRepository.Insert(organization);
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return 0;
+            }
         }
-
         public int Update(int id, Organization organization)
         {
-            Organization savedOrganization = _organizationRepository.Get(id);
-            if (savedOrganization != null)
+            try
             {
-                organization.Id = id;
-                if (!savedOrganization.Equals(organization))
-                    return _organizationRepository.Update(organization);
+                Organization savedOrganization = _organizationRepository.Get(id);
+                if (savedOrganization != null)
+                {
+                    organization.Id = id;
+                    if (!savedOrganization.Equals(organization))
+                        return _organizationRepository.Update(organization);
+                }
+
+                return _organizationRepository.Insert(organization);
             }
-
-            return _organizationRepository.Insert(organization);
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return 0;
+            }
         }
-
         public List<Organization> Get()
         {
-            return _organizationRepository.Get();
+            try
+            {
+                return _organizationRepository.Get();
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return null;
+            }
         }
-
         public Organization Get(int id)
         {
-            return _organizationRepository.Get(id);
+            try
+            {
+                return _organizationRepository.Get(id);
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return null;
+            }
         }
         public bool Delete(int id)
         {
-            return _organizationRepository.Delete(id);
+            try
+            {
+                return _organizationRepository.Delete(id);
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return false;
+            }
         }
+        #endregion
     }
 }

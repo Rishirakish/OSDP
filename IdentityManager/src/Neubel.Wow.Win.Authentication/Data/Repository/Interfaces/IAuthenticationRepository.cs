@@ -8,13 +8,17 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
         List<LoginHistory> GetLoginHistory(int userId);
         int PasswordChangeLog(PasswordLogin passwordLogin);
         int LoginTokenLog(LoginToken loginToken);
+        int LoginTokenLogForRefreshToken(RefreshedAccessToken refreshedAccessToken);
         int LoginLog(LoginRequest loginRequest);
         int LockedUserLog(LockUnlockUser lockUnlockUser);
         int SaveLoginToken(LoginToken loginToken);
+        int UpdateAccessToken(RefreshedAccessToken refreshedAccessToken);
         bool UpdatePasswordLogin(PasswordLogin passwordLogin);
         bool LockUnlockUser(LockUnlockUser lockUnlockUser);
         PasswordLogin GetLoginPassword(string userName);
         int SaveOtp(UserValidationOtp userValidationOtp);
         UserValidationOtp GetOtp(int userId);
+        bool UpdateMobileConfirmationStatus(int userId, bool mobileValidationStatus);
+        bool UpdateEmailConfirmationStatus(int userId, bool emailValidationStatus);
     }
 }

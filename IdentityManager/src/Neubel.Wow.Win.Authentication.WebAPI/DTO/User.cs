@@ -1,5 +1,8 @@
 ﻿namespace Neubel.Wow.Win.Authentication.WebAPI.DTO
 {
+    /// <summary>
+    /// User details.
+    /// </summary>
     public class User
     {
         /// <summary>

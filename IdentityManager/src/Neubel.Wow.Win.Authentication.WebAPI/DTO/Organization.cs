@@ -5,9 +5,18 @@ using System.Threading.Tasks;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.DTO
 {
+    /// <summary>
+    /// Organization details.
+    /// </summary>
     public class Organization
     {
+        /// <summary>
+        /// Organization Code.
+        /// </summary>
         public string OrgCode { get; set; }
+        /// <summary>
+        /// Organization Name.
+        /// </summary>
         public string OrgName { get; set; }
     }
 }

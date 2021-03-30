@@ -2,8 +2,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Neubel.Wow.Win.Authentication.Core.Model;
-using Neubel.Wow.Win.Authentication.WebAPI.DTO;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 {
@@ -19,7 +17,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             _authenticationService = authenticationService;
             _mapper = mapper;
         }
-
+        
         /// <summary>
         /// Get the access and refresh token after authentication.
         /// </summary>
@@ -30,15 +28,18 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         public IActionResult Token(DTO.LoginRequest loginRequest)
         {
             var loginReq = _mapper.Map<DTO.LoginRequest, Core.Model.LoginRequest>(loginRequest);
-            LoginToken loginToken = _authenticationService.Login(loginReq);
+            Core.Model.LoginToken loginToken = _authenticationService.Login(loginReq);
             if (loginToken == null)
                 return Unauthorized();
 
-            var userToken = _mapper.Map<LoginToken, UserToken>(loginToken);
+            var userToken = _mapper.Map<Core.Model.LoginToken, DTO.LoginToken>(loginToken);
 
             return Ok(userToken);
         }
-
+        /// <summary>
+        /// Refresh a access token using refresh token.
+        /// </summary>
+        /// <returns></returns>
         [Route("refreshToken")]
         [Authorize]
         [HttpPut]
@@ -46,23 +47,32 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         {
             string authorization = HttpContext.Request.Headers["Authorization"].SingleOrDefault();
 
-            LoginToken loginToken = _authenticationService.RefreshToken(authorization);
-            if (loginToken == null)
+            Core.Model.RefreshedAccessToken refreshedAccessToken = _authenticationService.RefreshToken(authorization);
+            if (refreshedAccessToken == null)
                 return Unauthorized();
 
-            var userToken = _mapper.Map<LoginToken, UserToken>(loginToken);
+            var userToken = _mapper.Map<Core.Model.RefreshedAccessToken, DTO.RefreshedAccessToken>(refreshedAccessToken);
 
             return Ok(userToken);
         }
 
+        /// <summary>
+        /// Forget password.
+        /// </summary>
+        /// <param name="forgotPassword"></param>
+        /// <returns></returns>
         [Route("forgotPassword")]
         [HttpPost]
-        public IActionResult ForgotPassword(string userName)
+        public IActionResult ForgotPassword(Core.Model.ForgotPassword forgotPassword)
         {
-           bool isSuccess = _authenticationService.ForgotPassword(userName);
-           return Ok(isSuccess);
+           bool result = _authenticationService.ForgotPassword(forgotPassword);
+           return Ok(result);
         }
-
+        /// <summary>
+        /// Change passsword.
+        /// </summary>
+        /// <param name="changedPassword"></param>
+        /// <returns></returns>
         [Route("changePassword")]
         [HttpPost]
         public IActionResult ChangePassword(DTO.ChangedPassword changedPassword)
@@ -71,7 +81,11 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             bool result = _authenticationService.ChangePassword(newPassword);
             return Ok(result);
         }
-
+        /// <summary>
+        /// Send Otp.
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
         [Route("sendOtp")]
         [HttpPost]
         public IActionResult SendOTP(string userName)
@@ -79,51 +93,78 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             bool result = _authenticationService.SendOtp(userName);
             return Ok(result);
         }
-
+        /// <summary>
+        /// Validate or match otp.
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="otp"></param>
+        /// <returns></returns>
         [Route("validateOtp")]
         [HttpPost]
         public IActionResult ValidateOtp(string userName, string otp)
         {
-            bool result = _authenticationService.validateOtp(userName, otp);
+            bool result = _authenticationService.ValidateOtp(userName, otp);
             return Ok(result);
         }
-
+        /// <summary>
+        /// Confirm Mobile.
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="otp"></param>
+        /// <returns></returns>
         [Route("confirmMobile")]
         [HttpPost]
         public IActionResult ConfirmMobile(string userName, string otp)
         {
-            bool result = _authenticationService.validateOtp(userName, otp);
+            bool result = _authenticationService.UpdateMobileConfirmationStatus(userName, otp);
             return Ok(result);
         }
-
+        /// <summary>
+        /// Confirm email.
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="otp"></param>
+        /// <returns></returns>
         [Route("confirmEmail")]
         [HttpPost]
         public IActionResult ConfirmEmail(string userName, string otp)
         {
-            bool result = _authenticationService.validateOtp(userName, otp);
+            bool result = _authenticationService.UpdateEmailConfirmationStatus(userName, otp);
             return Ok(result);
         }
-
+        /// <summary>
+        /// Login history.
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [Route("loginHistory")]
         [HttpGet]
         public IActionResult LoginHistory(int userId)
         {
             return Ok(_authenticationService.GetLoginHistory(userId));
         }
-        
+        /// <summary>
+        /// Lock user.
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
         [Route("lock")]
         [HttpPost]
         public IActionResult Lock(string userName)
         {
-            bool result = _authenticationService.LockUnlockUser(new LockUnlockUser { UserName = userName, Locked = true });
+            bool result = _authenticationService.LockUnlockUser(new Core.Model.LockUnlockUser { UserName = userName, Locked = true });
             return Ok(result);
         }
-
+        /// <summary>
+        /// Unlock user.
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
         [Route("unLock")]
         [HttpPost]
         public IActionResult UnLock(string userName)
         {
-            bool result = _authenticationService.LockUnlockUser(new LockUnlockUser { UserName = userName, Locked = false});
+            bool result = _authenticationService.LockUnlockUser(new Core.Model.LockUnlockUser { UserName = userName, Locked = false});
             return Ok(result);
         }
     }

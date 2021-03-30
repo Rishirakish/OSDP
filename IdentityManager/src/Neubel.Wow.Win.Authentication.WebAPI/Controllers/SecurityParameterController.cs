@@ -18,7 +18,10 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             _securityParameterService = securityParameterService;
             _mapper = mapper;
         }
-
+        /// <summary>
+        /// Get all security parameters/password policies.
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         [Authorize(Roles = Core.Model.UserRoles.Admin)]
         public IActionResult Get()
@@ -27,7 +30,11 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             var securityParameterDto = _mapper.Map<List<Core.Model.SecurityParameter>, List<DTO.SecurityParameter>>(users);
             return Ok(securityParameterDto);
         }
-
+        /// <summary>
+        /// Get a security parameters/password policy by Id.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         [Authorize(Roles = Core.Model.UserRoles.Admin)]
         public IActionResult Get(int id)
@@ -37,6 +44,11 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             return Ok(securityParameterDto);
         }
 
+        /// <summary>
+        /// Add a security parameters/password policy.
+        /// </summary>
+        /// <param name="securityParameter"></param>
+        /// <returns></returns>
         [HttpPost]
         [Authorize(Roles = Core.Model.UserRoles.Admin)]
         public IActionResult Post([FromBody] DTO.SecurityParameter securityParameter)
@@ -45,7 +57,12 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             var id = _securityParameterService.Insert(securityParameterModel);
             return Ok(id);
         }
-
+        /// <summary>
+        /// Update security parameters/password policy.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="securityParameter"></param>
+        /// <returns></returns>
         // PUT api/<SecurityParameterController>/5
         [HttpPut("{id}")]
         [Authorize(Roles = Core.Model.UserRoles.Admin)]
@@ -55,7 +72,11 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             _securityParameterService.Update(id, updatedSecurityParameter);
             return Ok(id);
         }
-
+        /// <summary>
+        /// Delete a security parameters/password policy (soft delete).
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("{id}")]
         [Authorize(Roles = Core.Model.UserRoles.Admin)]
         public IActionResult Delete(int id)

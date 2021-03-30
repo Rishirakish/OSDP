@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Neubel.Wow.Win.Authentication.Core.Interfaces;
 using Neubel.Wow.Win.Authentication.Core.Model;
 using Neubel.Wow.Win.Authentication.Data.Repository;
@@ -12,37 +13,76 @@ namespace Neubel.Wow.Win.Authentication.Services
         {
             _securityParameterRepository = securityParameterRepository;
         }
-        
+
+        #region Public Methods.
         public List<SecurityParameter> Get()
         {
-            return _securityParameterRepository.Get();
+            try
+            {
+                return _securityParameterRepository.Get();
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return null;
+            }
         }
-
         public SecurityParameter Get(int id)
         {
-            return _securityParameterRepository.Get(id);
+            try
+            {
+                return _securityParameterRepository.Get(id);
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return null;
+            }
         }
-
         public int Insert(SecurityParameter securityParameter)
         {
-            return _securityParameterRepository.Insert(securityParameter);
+            try
+            {
+                return _securityParameterRepository.Insert(securityParameter);
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return 0;
+            }
         }
-
         public int Update(int id, SecurityParameter updatedSecurityParameter)
         {
-            SecurityParameter savedSecurityParameter = _securityParameterRepository.Get(id);
-            if (savedSecurityParameter != null)
+            try
             {
-                updatedSecurityParameter.Id = id;
-                if (!savedSecurityParameter.Equals(updatedSecurityParameter))
-                    return _securityParameterRepository.Update(updatedSecurityParameter);
-            }
+                SecurityParameter savedSecurityParameter = _securityParameterRepository.Get(id);
+                if (savedSecurityParameter != null)
+                {
+                    updatedSecurityParameter.Id = id;
+                    if (!savedSecurityParameter.Equals(updatedSecurityParameter))
+                        return _securityParameterRepository.Update(updatedSecurityParameter);
+                }
 
-            return 0;
+                return 0;
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return 0;
+            }
         }
         public bool Delete(int id)
         {
-            return _securityParameterRepository.Delete(id);
+            try
+            {
+                return _securityParameterRepository.Delete(id);
+            }
+            catch (Exception ex)
+            {
+                //TODO: log exception here.
+                return false;
+            }
         }
+        #endregion
     }
 }

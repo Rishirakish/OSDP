@@ -7,7 +7,9 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Mappers
         public MappingProfile()
         {
             CreateMap<DTO.LoginRequest, Core.Model.LoginRequest>();
-            CreateMap<DTO.UserToken, Core.Model.LoginToken>().ReverseMap();
+            CreateMap<Core.Model.RefreshedAccessToken, DTO.RefreshedAccessToken>();
+            CreateMap<DTO.ForgotPassword, Core.Model.ForgotPassword>();
+            CreateMap<DTO.LoginToken, Core.Model.LoginToken>().ReverseMap();
             CreateMap<DTO.User, Core.Model.User>().ReverseMap();
             CreateMap<DTO.Organization, Core.Model.Organization>().ReverseMap();
             CreateMap<DTO.Role, Core.Model.Role>().ReverseMap();
