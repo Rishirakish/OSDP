@@ -10,6 +10,7 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
         List<Role> Get();
         Role Get(int id);
         List<string> Get(string userName);
+        List<(int, string)> GetRoleWithOrg(string userName);
         bool Delete(int id);
     }
 }

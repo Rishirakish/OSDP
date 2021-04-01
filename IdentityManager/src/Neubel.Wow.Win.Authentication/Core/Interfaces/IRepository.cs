@@ -11,7 +11,7 @@ namespace Neubel.Wow.Win.Authentication.Core.Interfaces
         IList<TEntity> GetAll();
 
         TEntity GetById(int id);
-        
+
         int Add(TEntity entity);
 
         int Add(IList<TEntity> list);

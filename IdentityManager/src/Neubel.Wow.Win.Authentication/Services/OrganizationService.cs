@@ -9,9 +9,11 @@ namespace Neubel.Wow.Win.Authentication.Services
     public class OrganizationService : IOrganizationService
     {
         private readonly IOrganizationRepository _organizationRepository;
-        public OrganizationService(IOrganizationRepository organizationRepository)
+        private readonly ILogger _logger;
+        public OrganizationService(IOrganizationRepository organizationRepository, ILogger logger)
         {
             _organizationRepository = organizationRepository;
+            _logger = logger;
         }
 
         #region Public Methods.
@@ -23,7 +25,14 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
             catch (Exception ex)
             {
-                //TODO: log exception here.
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
                 return 0;
             }
         }
@@ -43,7 +52,14 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
             catch (Exception ex)
             {
-                //TODO: log exception here.
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
                 return 0;
             }
         }
@@ -55,7 +71,14 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
             catch (Exception ex)
             {
-                //TODO: log exception here.
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
                 return null;
             }
         }
@@ -67,7 +90,14 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
             catch (Exception ex)
             {
-                //TODO: log exception here.
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
                 return null;
             }
         }
@@ -79,7 +109,14 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
             catch (Exception ex)
             {
-                //TODO: log exception here.
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
                 return false;
             }
         }

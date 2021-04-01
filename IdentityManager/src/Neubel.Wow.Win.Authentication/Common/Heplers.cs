@@ -1,13 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using Neubel.Wow.Win.Authentication.Core.Model;
 
 namespace Neubel.Wow.Win.Authentication.Common
 {
-	public static class Helpers
-	{
-		private static char[] charSet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+    public static class Helpers
+    {
+        private static char[] charSet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
 
         private static bool ValidateMinimumSmallChars(string password, int expectedCount)
         {
@@ -17,12 +20,12 @@ namespace Neubel.Wow.Win.Authentication.Common
                 if (c >= 'a' && c <= 'z')
                 {
                     smallCharCount++;
-					if (expectedCount == smallCharCount)
-						return true;
+                    if (expectedCount == smallCharCount)
+                        return true;
                 }
             }
-			return false;
-		}
+            return false;
+        }
         private static bool ValidateMinimumCapsChars(string password, int expectedCount)
         {
             int capsCharCount = 0;
@@ -31,17 +34,17 @@ namespace Neubel.Wow.Win.Authentication.Common
                 if (c >= 'A' && c <= 'Z')
                 {
                     capsCharCount++;
-					if (expectedCount == capsCharCount)
-						return true;
+                    if (expectedCount == capsCharCount)
+                        return true;
                 }
             }
-			return false;
-		}
+            return false;
+        }
         private static bool ValidateMinimumSpecialChars(string password, int expectedCount)
         {
             int minSpecialCharCount = 0;
             char[] special = { '@', '#', '$', '%', '^', '&', '+', '=' };
-			foreach (char c in special)
+            foreach (char c in special)
             {
                 if (password.IndexOf(c) != -1)
                 {
@@ -52,7 +55,7 @@ namespace Neubel.Wow.Win.Authentication.Common
             }
             return false;
         }
-		private static bool ValidateMinimumDigits(string password, int expectedCount)
+        private static bool ValidateMinimumDigits(string password, int expectedCount)
         {
             int minDigitCount = 0;
             foreach (char c in password)
@@ -66,184 +69,223 @@ namespace Neubel.Wow.Win.Authentication.Common
             }
             return false;
         }
-		private static bool ValidateDisallowedChars(string password, string disallowedChars)
+        private static bool ValidateDisallowedChars(string password, string disallowedChars)
         {
             foreach (char c in disallowedChars)
             {
                 if (password.IndexOf(c) != -1)
                 {
-					return false;
+                    return false;
                 }
             }
             return true;
-		}
-		public static bool ValidatePassword(string password, SecurityParameter securityParameter)
-        {
-			if (password.Length < securityParameter.MinLength)
-				return false;
+        }
 
-			if (!ValidateMinimumSmallChars(password, securityParameter.MinSmallChars))
-				return false;
+        public static int GetOrganizationContextForSignedInUser(string authorization)
+        {
+            var refreshToken = authorization.Substring(authorization.IndexOf(' ') + 1);
+            int organizationId = 0;
+            if (new JwtSecurityTokenHandler().ReadToken(refreshToken) is JwtSecurityToken jwt)
+            {
+                if (jwt.Claims is List<Claim> claims)
+                {
+                    foreach (var claim in claims)
+                    {
+                        if (claim.Type == "OrganizationId")
+                            organizationId = Convert.ToInt32(claim.Value);
+                    }
+                }
+            }
+
+            return organizationId;
+        }
+        public static RequestResult<bool> ValidatePassword(string password, SecurityParameter securityParameter)
+        {
+            List<ValidationMessage> validationMessages = new List<ValidationMessage>();
+            
+            if (password.Length < securityParameter.MinLength)
+            {
+                validationMessages.Add(new ValidationMessage {Reason = "Minimum length of the password should be " + securityParameter.MinLength + "characters long", Severity = ValidationSeverity.Error });
+                return new RequestResult<bool>(false, validationMessages); ;
+            }
+
+            if (!ValidateMinimumSmallChars(password, securityParameter.MinSmallChars))
+            {
+                validationMessages.Add(new ValidationMessage { Reason = "Minimum number of small characters the password should have is " + securityParameter.MinSmallChars, Severity = ValidationSeverity.Error });
+                return new RequestResult<bool>(false, validationMessages); ;
+            }
 
             if (!ValidateMinimumCapsChars(password, securityParameter.MinCaps))
-                return false;
+            {
+                validationMessages.Add(new ValidationMessage { Reason = "Minimum number of capital characters the password should have is " + securityParameter.MinCaps, Severity = ValidationSeverity.Error });
+                return new RequestResult<bool>(false, validationMessages); ;
+            }
 
             if (!ValidateMinimumDigits(password, securityParameter.MinNumber))
-                return false;
+            {
+                validationMessages.Add(new ValidationMessage { Reason = "Minimum number of numeric characters the password should have is " + securityParameter.MinNumber, Severity = ValidationSeverity.Error });
+                return new RequestResult<bool>(false, validationMessages); ;
+            }
 
-            if (!ValidateMinimumSpecialChars(password, securityParameter.MinNumber))
-                return false;
+            if (!ValidateMinimumSpecialChars(password, securityParameter.MinSpecialChars))
+            {
+                validationMessages.Add(new ValidationMessage { Reason = "Minimum number of special characters the password should have is " + securityParameter.MinSpecialChars, Severity = ValidationSeverity.Error });
+                return new RequestResult<bool>(false, validationMessages); ;
+            }
 
             if (!ValidateDisallowedChars(password, securityParameter.DisAllowedChars))
-                return false;
+            {
+                validationMessages.Add(new ValidationMessage { Reason = "Characters which are not allowed in password are " + securityParameter.DisAllowedChars, Severity = ValidationSeverity.Error });
+                return new RequestResult<bool>(false, validationMessages); ;
+            }
 
-            return true;
+            return new RequestResult<bool>(true);
         }
-		public static bool IsEmail(string email)
-		{
-			return System.Text.RegularExpressions.Regex.IsMatch(email, @"\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*");
-		}
+        public static bool IsEmail(string email)
+        {
+            return System.Text.RegularExpressions.Regex.IsMatch(email, @"\w+([-+.']\w+)*@\w+([-.]\w+)*\.\w+([-.]\w+)*");
+        }
 
-		public static string Base64Encode(string strOriginal)
-		{
-			string strModified = null;
-			if (!string.IsNullOrEmpty(strOriginal))
-			{
-				byte[] byt = Encoding.UTF8.GetBytes(strOriginal);
-				strModified = Convert.ToBase64String(byt);
-			}
-			return strModified;
-		}
+        public static string Base64Encode(string strOriginal)
+        {
+            string strModified = null;
+            if (!string.IsNullOrEmpty(strOriginal))
+            {
+                byte[] byt = Encoding.UTF8.GetBytes(strOriginal);
+                strModified = Convert.ToBase64String(byt);
+            }
+            return strModified;
+        }
 
-		public static string Base64Decode(string strModified)
-		{
-			string strOriginal = null;
-			if (!string.IsNullOrEmpty(strModified))
-			{
-				byte[] b = Convert.FromBase64String(strModified);
-				strOriginal = Encoding.UTF8.GetString(b, 0, b.Length);
-			}
-			return strOriginal;
-		}
+        public static string Base64Decode(string strModified)
+        {
+            string strOriginal = null;
+            if (!string.IsNullOrEmpty(strModified))
+            {
+                byte[] b = Convert.FromBase64String(strModified);
+                strOriginal = Encoding.UTF8.GetString(b, 0, b.Length);
+            }
+            return strOriginal;
+        }
 
-		public static string DecimalToBinary(int decimalNumber)
-		{
-			string binaryNumber = Convert.ToString(decimalNumber, 2);
-			return binaryNumber;
-		}
+        public static string DecimalToBinary(int decimalNumber)
+        {
+            string binaryNumber = Convert.ToString(decimalNumber, 2);
+            return binaryNumber;
+        }
 
-		public static int BinaryToDecimal(string binaryNumber)
-		{
-			int decimalNumber = Convert.ToInt32(binaryNumber, 2);
-			return decimalNumber;
-		}
+        public static int BinaryToDecimal(string binaryNumber)
+        {
+            int decimalNumber = Convert.ToInt32(binaryNumber, 2);
+            return decimalNumber;
+        }
 
-		public static string Base62Encode(long value)
-		{
-			string sixtyNum = string.Empty;
-			if (value < 62)
-			{
-				sixtyNum = charSet[value].ToString();
-			}
-			else
-			{
-				long result = value;
-				while (result > 0)
-				{
-					long val = result % 62;
-					sixtyNum = charSet[val] + sixtyNum;
-					result = result / 62;
-				}
-			}
-			return sixtyNum;
-		}
+        public static string Base62Encode(long value)
+        {
+            string sixtyNum = string.Empty;
+            if (value < 62)
+            {
+                sixtyNum = charSet[value].ToString();
+            }
+            else
+            {
+                long result = value;
+                while (result > 0)
+                {
+                    long val = result % 62;
+                    sixtyNum = charSet[val] + sixtyNum;
+                    result = result / 62;
+                }
+            }
+            return sixtyNum;
+        }
 
-		public static string MD5Hash(string input)
-		{
-			using (var md5 = MD5.Create())
-			{
-				var result = md5.ComputeHash(Encoding.ASCII.GetBytes(input));
-				var strResult = BitConverter.ToString(result);
-				return strResult.Replace("-", "");
-			}
-		}
+        public static string MD5Hash(string input)
+        {
+            using (var md5 = MD5.Create())
+            {
+                var result = md5.ComputeHash(Encoding.ASCII.GetBytes(input));
+                var strResult = BitConverter.ToString(result);
+                return strResult.Replace("-", "");
+            }
+        }
 
-		private static int GetCurrentGreenwichHourIn24()
-		{
-			int thisHour = Convert.ToInt32((DateTimeOffset.Now + DateTimeOffset.Now.Offset).ToString("yyyy-MM-dd HH:mm:ss").Substring(11, 2));
-			return thisHour;
-		}
+        private static int GetCurrentGreenwichHourIn24()
+        {
+            int thisHour = Convert.ToInt32((DateTimeOffset.Now + DateTimeOffset.Now.Offset).ToString("yyyy-MM-dd HH:mm:ss").Substring(11, 2));
+            return thisHour;
+        }
 
-		public static long[] GetPermissionsByPermissionCode(int permissionCode)
-		{
-			string bPermissionCode = Helpers.DecimalToBinary(permissionCode);
-			long[] permissions = new long[bPermissionCode.Length];
-			for (int i = 0; i < bPermissionCode.Length; i++)
-			{
-				long currentBinaryPermission = Convert.ToInt32(bPermissionCode.Substring(bPermissionCode.Length - i - 1));
-				for (int j = 0; j < i; j++)
-				{
-					currentBinaryPermission = currentBinaryPermission - permissions[j];
-				}
-				permissions[i] = currentBinaryPermission;
-			}
-			for (int k = 0; k < bPermissionCode.Length; k++)
-			{
-				permissions[k] = Helpers.BinaryToDecimal(permissions[k].ToString());
-			}
+        public static long[] GetPermissionsByPermissionCode(int permissionCode)
+        {
+            string bPermissionCode = Helpers.DecimalToBinary(permissionCode);
+            long[] permissions = new long[bPermissionCode.Length];
+            for (int i = 0; i < bPermissionCode.Length; i++)
+            {
+                long currentBinaryPermission = Convert.ToInt32(bPermissionCode.Substring(bPermissionCode.Length - i - 1));
+                for (int j = 0; j < i; j++)
+                {
+                    currentBinaryPermission = currentBinaryPermission - permissions[j];
+                }
+                permissions[i] = currentBinaryPermission;
+            }
+            for (int k = 0; k < bPermissionCode.Length; k++)
+            {
+                permissions[k] = Helpers.BinaryToDecimal(permissions[k].ToString());
+            }
 
-			return permissions;
-		}
+            return permissions;
+        }
 
-		public static string GetFixedDigitNumber(long number, int digit)
-		{
-			string result = null;
-			if (number > 0)
-			{
-				result = number.ToString().PadLeft(digit, '0');
-			}
-			return result;
-		}
+        public static string GetFixedDigitNumber(long number, int digit)
+        {
+            string result = null;
+            if (number > 0)
+            {
+                result = number.ToString().PadLeft(digit, '0');
+            }
+            return result;
+        }
 
-		public static string GetDataTimeString(DateTime date)
-		{
-			return date.ToString("yyyyMMddHHmmss");
-		}
+        public static string GetDataTimeString(DateTime date)
+        {
+            return date.ToString("yyyyMMddHHmmss");
+        }
 
-		public static string GetDataTimeString(DateTimeOffset date)
-		{
-			return date.ToString("yyyyMMddHHmmss");
-		}
+        public static string GetDataTimeString(DateTimeOffset date)
+        {
+            return date.ToString("yyyyMMddHHmmss");
+        }
 
-		public static DateTime UnixTimestampToDateTime(double unixTime)
-		{
-			DateTime unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-			long unixTimeStampInTicks = (long)(unixTime * TimeSpan.TicksPerSecond);
-			return new DateTime(unixStart.Ticks + unixTimeStampInTicks);
-		}
+        public static DateTime UnixTimestampToDateTime(double unixTime)
+        {
+            DateTime unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            long unixTimeStampInTicks = (long)(unixTime * TimeSpan.TicksPerSecond);
+            return new DateTime(unixStart.Ticks + unixTimeStampInTicks);
+        }
 
-		public static double DateTimeToUnixTimestamp(DateTime dateTime)
-		{
-			DateTime unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-			long unixTimeStampInTicks = (dateTime.ToUniversalTime() - unixStart).Ticks;
-			return (double)unixTimeStampInTicks / TimeSpan.TicksPerSecond;
-		}
+        public static double DateTimeToUnixTimestamp(DateTime dateTime)
+        {
+            DateTime unixStart = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            long unixTimeStampInTicks = (dateTime.ToUniversalTime() - unixStart).Ticks;
+            return (double)unixTimeStampInTicks / TimeSpan.TicksPerSecond;
+        }
 
-		public static DateTimeOffset UnixTimestampToDateTimeOffset(double unixTime)
-		{
-			DateTimeOffset unixStart = new DateTimeOffset(1970, 1, 1, 0, 0, 0, 0, new TimeSpan(0, 0, 0));
-			long unixTimeStampInTicks = (long)(unixTime * TimeSpan.TicksPerSecond);
-			return new DateTimeOffset(unixStart.Ticks + unixTimeStampInTicks, new TimeSpan(0, 0, 0));
-		}
+        public static DateTimeOffset UnixTimestampToDateTimeOffset(double unixTime)
+        {
+            DateTimeOffset unixStart = new DateTimeOffset(1970, 1, 1, 0, 0, 0, 0, new TimeSpan(0, 0, 0));
+            long unixTimeStampInTicks = (long)(unixTime * TimeSpan.TicksPerSecond);
+            return new DateTimeOffset(unixStart.Ticks + unixTimeStampInTicks, new TimeSpan(0, 0, 0));
+        }
 
-		public static double DateTimeOffsetToUnixTimestamp(DateTimeOffset dateTime)
-		{
-			DateTimeOffset unixStart = new DateTimeOffset(1970, 1, 1, 0, 0, 0, 0, new TimeSpan(0, 0, 0));
-			long unixTimeStampInTicks = (dateTime.ToUniversalTime() - unixStart).Ticks;
-			return (double)unixTimeStampInTicks / TimeSpan.TicksPerSecond;
-		}
+        public static double DateTimeOffsetToUnixTimestamp(DateTimeOffset dateTime)
+        {
+            DateTimeOffset unixStart = new DateTimeOffset(1970, 1, 1, 0, 0, 0, 0, new TimeSpan(0, 0, 0));
+            long unixTimeStampInTicks = (dateTime.ToUniversalTime() - unixStart).Ticks;
+            return (double)unixTimeStampInTicks / TimeSpan.TicksPerSecond;
+        }
 
-		public static long ToUnixEpochDate(DateTime date) => (long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds);
+        public static long ToUnixEpochDate(DateTime date) => (long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds);
 
-	}
+    }
 }

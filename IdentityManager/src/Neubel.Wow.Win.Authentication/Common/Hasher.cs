@@ -19,7 +19,7 @@ namespace Neubel.Wow.Win.Authentication.Common
                 iterationCount: 10000,
                 numBytesRequested: 256 / 8);
 
-            return new PasswordLogin {PasswordHash = Convert.ToBase64String(valueBytes), PasswordSalt = salt};
+            return new PasswordLogin { PasswordHash = Convert.ToBase64String(valueBytes), PasswordSalt = salt };
         }
         public static bool ValidateHash(string value, string salt, string hash, out string valueHash)
         {
@@ -41,7 +41,7 @@ namespace Neubel.Wow.Win.Authentication.Common
 
             return Convert.ToBase64String(valueBytes);
         }
-        
+
         private static string CreateSalt()
         {
             byte[] randomBytes = new byte[128 / 8];

@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Neubel.Wow.Win.Authentication.Core.Model.Roles;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 {
@@ -21,7 +23,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// Get all users.
         /// </summary>
         /// <returns></returns>
-        [Authorize(Roles = Core.Model.UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.ApplicationAdmin + "," + UserRoles.Admin)]
         [HttpGet]
         public IActionResult Get()
         {
@@ -34,7 +36,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Roles = Core.Model.UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.ApplicationAdmin + "," + UserRoles.Admin)]
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
@@ -47,13 +49,16 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        //[Authorize(Roles = UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.Admin)]
         [HttpPost]
         public IActionResult Post(DTO.User user)
         {
+            string authorization = HttpContext.Request.Headers["Authorization"].SingleOrDefault();
             var userModel = _mapper.Map<DTO.User, Core.Model.User>(user);
-            var id = _userService.Insert(userModel, user.Password);
-            return Ok(id);
+            var result = _userService.Insert(authorization, userModel, user.Password);
+            if (result.IsSuccessful)
+                return Ok(result.RequestedObject);
+            return Ok(result.ValidationMessages);
         }
         /// <summary>
         /// Update an existing user by Id.
@@ -63,7 +68,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <returns></returns>
         // PUT api/<UserController>/5
         [HttpPut("{id}")]
-        [Authorize(Roles = Core.Model.UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.Admin)]
         public IActionResult Put(int id, [FromBody] DTO.User user)
         {
             var updatedUser = _mapper.Map<DTO.User, Core.Model.User>(user);
@@ -75,7 +80,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("{id}")]
-        [Authorize(Roles = Core.Model.UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.Admin)]
         public IActionResult Delete(int id)
         {
             bool result = _userService.Delete(id);
@@ -88,7 +93,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("activate")]
-        [Authorize(Roles = Core.Model.UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.Admin)]
         public IActionResult Activate(string userName)
         {
             bool result = _userService.ActivateDeactivateUser(new Core.Model.ActivateDeactivateUser{ UserName = userName, IsActive = true});
@@ -101,7 +106,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("deactivate")]
-        [Authorize(Roles = Core.Model.UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.Admin)]
         public IActionResult Deactivate(string userName)
         {
             bool result = _userService.ActivateDeactivateUser(new Core.Model.ActivateDeactivateUser { UserName = userName, IsActive = false });

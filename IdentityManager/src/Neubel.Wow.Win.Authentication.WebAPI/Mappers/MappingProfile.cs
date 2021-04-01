@@ -13,6 +13,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Mappers
             CreateMap<DTO.User, Core.Model.User>().ReverseMap();
             CreateMap<DTO.Organization, Core.Model.Organization>().ReverseMap();
             CreateMap<DTO.Role, Core.Model.Role>().ReverseMap();
+            CreateMap<DTO.UserRole, Core.Model.UserRole>().ReverseMap();
             CreateMap<DTO.ChangedPassword, Core.Model.ChangedPassword>();
             CreateMap<DTO.SecurityParameter, Core.Model.SecurityParameter>().ReverseMap();
         }

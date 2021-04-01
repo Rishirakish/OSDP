@@ -1,11 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
-using Neubel.Wow.Win.Authentication.Core.Model;
+using Neubel.Wow.Win.Authentication.Core.Model.Roles;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 {
@@ -18,12 +16,6 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
-        private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
-        {
-            _logger = logger;
-        }
         [Authorize(Roles = UserRoles.GeneralUser)]
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()

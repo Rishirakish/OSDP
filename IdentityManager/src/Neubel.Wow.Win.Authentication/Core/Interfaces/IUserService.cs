@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Model;
 
 namespace Neubel.Wow.Win.Authentication.Core.Interfaces
@@ -8,10 +9,11 @@ namespace Neubel.Wow.Win.Authentication.Core.Interfaces
         /// <summary>
         /// Insert user.
         /// </summary>
+        /// <param name="authorization"></param>
         /// <param name="user"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        bool Insert(User user, string password);
+        RequestResult<bool> Insert(string authorization, User user, string password);
 
         /// <summary>
         /// Update user.

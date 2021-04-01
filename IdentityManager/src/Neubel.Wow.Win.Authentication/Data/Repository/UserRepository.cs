@@ -108,6 +108,7 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
             db.Execute(query, new { IsDeleted = true, Id = id });
             return true;
         }
+
         #endregion
     }
 }

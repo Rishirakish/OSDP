@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -51,10 +52,16 @@ namespace Neubel.Wow.Win.Authentication.Tests
             roleRepo.Setup(mock => mock.Delete(1)).Returns(true);
             roleRepo.Setup(mock => mock.Update(roles[0])).Returns(roles[0].Id);
 
+            //mock not required service.
+            Mock<ILogger> logger = new Mock<ILogger>();
+            logger.Setup(m => m.LogException(new Core.Model.ExceptionLog())).Returns(Task.FromResult(true));
+            logger.Setup(m => m.LogTransaction(new Core.Model.TransactionLog())).Returns(Task.FromResult(true));
+            logger.Setup(m => m.LogUsage(new Core.Model.UsageLog())).Returns(Task.FromResult(true));
+
             // resolve dependencies.
             _mapper = mapper.Object;
             _roleRepository = roleRepo.Object;
-            _roleService = new RoleService(_roleRepository);
+            _roleService = new RoleService(_roleRepository, logger.Object);
         }
 
         [Test]

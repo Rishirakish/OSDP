@@ -6,11 +6,6 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
     public interface IAuthenticationRepository
     {
         List<LoginHistory> GetLoginHistory(int userId);
-        int PasswordChangeLog(PasswordLogin passwordLogin);
-        int LoginTokenLog(LoginToken loginToken);
-        int LoginTokenLogForRefreshToken(RefreshedAccessToken refreshedAccessToken);
-        int LoginLog(LoginRequest loginRequest);
-        int LockedUserLog(LockUnlockUser lockUnlockUser);
         int SaveLoginToken(LoginToken loginToken);
         int UpdateAccessToken(RefreshedAccessToken refreshedAccessToken);
         bool UpdatePasswordLogin(PasswordLogin passwordLogin);

@@ -2,26 +2,26 @@
 using System.Collections.Generic;
 using Neubel.Wow.Win.Authentication.Core.Interfaces;
 using Neubel.Wow.Win.Authentication.Core.Model;
-using Neubel.Wow.Win.Authentication.Data.Repository;
+using Neubel.Wow.Win.Authentication.Data.Repository.Interfaces;
 
 namespace Neubel.Wow.Win.Authentication.Services
 {
-    public class RoleService : IRoleService
+    public class UserRoleService : IUserRoleService
     {
-        private readonly IRoleRepository _roleRepository;
+        private readonly IUserRoleRepository _userRoleRepository;
         private readonly ILogger _logger;
-        public RoleService(IRoleRepository roleRepository, ILogger logger)
+
+        public UserRoleService(IUserRoleRepository userRoleRepository, ILogger logger)
         {
-            _roleRepository = roleRepository;
+            _userRoleRepository = userRoleRepository;
             _logger = logger;
         }
 
-        #region Public Methods.
-        public int Insert(Role role)
+        public int Add(UserRole userRole)
         {
             try
             {
-                return _roleRepository.Insert(role);
+                return _userRoleRepository.Add(userRole);
             }
             catch (Exception ex)
             {
@@ -36,95 +36,12 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return 0;
             }
         }
-        public int Update(int id, Role role)
-        {
-            try
-            {
-                Role savedRole = _roleRepository.Get(id);
-                if (savedRole != null)
-                {
-                    role.Id = id;
-                    if (!savedRole.Equals(role))
-                        return _roleRepository.Update(role);
-                }
 
-                return _roleRepository.Insert(role);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogException(new ExceptionLog
-                {
-                    ExceptionDate = DateTime.Now,
-                    ExceptionMsg = ex.Message,
-                    ExceptionSource = ex.Source,
-                    ExceptionType = "UserService",
-                    FullException = ex.StackTrace
-                });
-                return 0;
-            }
-        }
-        public List<Role> Get()
-        {
-            try
-            {
-                return _roleRepository.Get();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogException(new ExceptionLog
-                {
-                    ExceptionDate = DateTime.Now,
-                    ExceptionMsg = ex.Message,
-                    ExceptionSource = ex.Source,
-                    ExceptionType = "UserService",
-                    FullException = ex.StackTrace
-                });
-                return null;
-            }
-        }
-        public Role Get(int id)
-        {
-            try
-            {
-                return _roleRepository.Get(id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogException(new ExceptionLog
-                {
-                    ExceptionDate = DateTime.Now,
-                    ExceptionMsg = ex.Message,
-                    ExceptionSource = ex.Source,
-                    ExceptionType = "UserService",
-                    FullException = ex.StackTrace
-                });
-                return null;
-            }
-        }
-        public List<string> Get(string userName)
-        {
-            try
-            {
-                return _roleRepository.Get(userName);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogException(new ExceptionLog
-                {
-                    ExceptionDate = DateTime.Now,
-                    ExceptionMsg = ex.Message,
-                    ExceptionSource = ex.Source,
-                    ExceptionType = "UserService",
-                    FullException = ex.StackTrace
-                });
-                return null;
-            }
-        }
         public bool Delete(int id)
         {
             try
             {
-                return _roleRepository.Delete(id);
+                return _userRoleRepository.Delete(id);
             }
             catch (Exception ex)
             {
@@ -139,6 +56,45 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return false;
             }
         }
-        #endregion
+
+        public List<UserRole> Get()
+        {
+            try
+            {
+                return _userRoleRepository.Get();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return null;
+            }
+        }
+
+        public List<UserRole> Get(int userId)
+        {
+            try
+            {
+                return _userRoleRepository.Get(userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return null;
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -68,11 +69,17 @@ namespace Neubel.Wow.Win.Authentication.Tests
             securityParameterRepo.Setup(mock => mock.Get(1)).Returns(securityParameters[0]);
             securityParameterRepo.Setup(mock => mock.Insert(securityParameters[0])).Returns(securityParameters[0].Id);
             securityParameterRepo.Setup(mock => mock.Delete(1)).Returns(true);
-
+            
+            //mock not required service.
+            Mock<ILogger> logger = new Mock<ILogger>();
+            logger.Setup(m => m.LogException(new Core.Model.ExceptionLog())).Returns(Task.FromResult(true));
+            logger.Setup(m => m.LogTransaction(new Core.Model.TransactionLog())).Returns(Task.FromResult(true));
+            logger.Setup(m => m.LogUsage(new Core.Model.UsageLog())).Returns(Task.FromResult(true));
+            
             // resolve dependencies.
             _mapper = mapper.Object;
             _securityParameterRepository = securityParameterRepo.Object;
-            _securityParameterService = new SecurityParameterService(_securityParameterRepository);
+            _securityParameterService = new SecurityParameterService(_securityParameterRepository, logger.Object);
         }
 
         [Test]

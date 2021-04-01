@@ -2,6 +2,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Neubel.Wow.Win.Authentication.Core.Model.Roles;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 {
@@ -21,7 +22,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// Get all organization.
         /// </summary>
         /// <returns></returns>
-        [Authorize(Roles = Core.Model.UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.Sysadmin + "," + UserRoles.Admin)]
         [HttpGet]
         public IActionResult Get()
         {
@@ -34,7 +35,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Roles = Core.Model.UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.Sysadmin + "," + UserRoles.Admin)]
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
@@ -47,7 +48,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// </summary>
         /// <param name="organization"></param>
         /// <returns></returns>
-        [Authorize(Roles = Core.Model.UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.Sysadmin)]
         [HttpPost]
         public IActionResult Post(DTO.Organization organization)
         {
@@ -63,7 +64,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <returns></returns>
         // PUT api/<OrganizationController>/5
         [HttpPut("{id}")]
-        [Authorize(Roles = Core.Model.UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.Sysadmin)]
         public IActionResult Put(int id, [FromBody] DTO.Organization organization)
         {
             var updatedOrganization = _mapper.Map<DTO.Organization, Core.Model.Organization>(organization);
@@ -75,7 +76,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("{id}")]
-        [Authorize(Roles = Core.Model.UserRoles.Admin)]
+        [Authorize(Roles = UserRoles.Sysadmin)]
         public IActionResult Delete(int id)
         {
             bool result = _organizationService.Delete(id);

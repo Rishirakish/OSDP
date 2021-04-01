@@ -11,31 +11,51 @@ namespace Neubel.Wow.Win.Authentication.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ISecurityParameterRepository _securityParameterRepository;
-        public UserService(IUserRepository userRepository, ISecurityParameterRepository securityParameterRepository)
+        private readonly ILogger _logger;
+        public UserService(IUserRepository userRepository, ISecurityParameterRepository securityParameterRepository, ILogger logger)
         {
             _userRepository = userRepository;
             _securityParameterRepository = securityParameterRepository;
+            _logger = logger;
         }
 
         #region Public Methods.
-        public bool Insert(User user, string password)
+        public RequestResult<bool> Insert(string authorization, User user, string password)
         {
+            List<ValidationMessage> validationMessages = new List<ValidationMessage>();
             try
             {
+                int organizationId = Helpers.GetOrganizationContextForSignedInUser(authorization);
+
+                if (organizationId != user.OrgId)
+                {
+                    var error = new ValidationMessage { Reason = "You can only register users in your organization", Severity = ValidationSeverity.Error};
+                    validationMessages.Add(error);
+                    return new RequestResult<bool>(false, validationMessages);
+                }
+
                 var passwordPolicy = _securityParameterRepository.Get(user.OrgId);
-                if (Helpers.ValidatePassword(password, passwordPolicy))
+                var validatePassword = Helpers.ValidatePassword(password, passwordPolicy);
+                if (validatePassword.IsSuccessful)
                 {
                     PasswordLogin passwordLogin = Hasher.HashPassword(password);
                     _userRepository.Insert(user, passwordLogin);
-                    return true;
+                    return new RequestResult<bool>(true);
                 }
 
-                return false;
+                return new RequestResult<bool>(false, validatePassword.ValidationMessages);
             }
             catch (Exception ex)
             {
-                //TODO: log exception here.
-                return false;
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return new RequestResult<bool>(false);
             }
         }
         public int Update(int id, User user)
@@ -54,7 +74,14 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
             catch (Exception ex)
             {
-                //TODO: log exception here.
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
                 return 0;
             }
         }
@@ -66,7 +93,14 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
             catch (Exception ex)
             {
-                //TODO: log exception here.
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
                 return null;
             }
         }
@@ -78,7 +112,14 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
             catch (Exception ex)
             {
-                //TODO: log exception here.
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
                 return null;
             }
         }
@@ -90,7 +131,14 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
             catch (Exception ex)
             {
-                //TODO: log exception here.
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
                 return false;
             }
         }
@@ -102,10 +150,19 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
             catch (Exception ex)
             {
-                //TODO: log exception here.
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
                 return false;
             }
         }
+
         #endregion
+
     }
 }

@@ -10,6 +10,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.DTO
     /// </summary>
     public class Organization
     {
+        public int Id { get; set; }
         /// <summary>
         /// Organization Code.
         /// </summary>

@@ -10,6 +10,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.DTO
     /// </summary>
     public class Role
     {
+        public int Id { get; set; }
         /// <summary>
         /// Role Name.
         /// </summary>

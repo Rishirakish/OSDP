@@ -15,15 +15,20 @@ namespace Neubel.Wow.Win.Authentication.Services
     public class AuthenticationService : IAuthenticationService
     {
         private readonly IConfiguration _configuration;
-        private readonly IRoleService _roleService;
+        private readonly IRoleRepository _roleRepository;
         private readonly IUserRepository _userRepository;
         private readonly IAuthenticationRepository _authenticationRepository;
-        public AuthenticationService(IConfiguration configuration, IRoleService roleService, IAuthenticationRepository authenticationRepository, IUserRepository userRepository)
+        private readonly ILogger _logger;
+        public AuthenticationService(IConfiguration configuration,
+            IRoleRepository roleRepository,
+            IAuthenticationRepository authenticationRepository,
+            IUserRepository userRepository, ILogger logger)
         {
             _configuration = configuration;
-            _roleService = roleService;
+            _roleRepository = roleRepository;
             _authenticationRepository = authenticationRepository;
             _userRepository = userRepository;
+            _logger = logger;
         }
 
 
@@ -31,111 +36,220 @@ namespace Neubel.Wow.Win.Authentication.Services
 
         public LoginToken Login(LoginRequest loginRequest)
         {
-            LoginToken token = new LoginToken();
-            var passwordLogin = _authenticationRepository.GetLoginPassword(loginRequest.UserName);
-            string valueHash = string.Empty;
-            if (passwordLogin != null && Hasher.ValidateHash(loginRequest.Password, passwordLogin.PasswordSalt, passwordLogin.PasswordHash, out valueHash))
+            try
             {
-                loginRequest.Id = passwordLogin.UserId;
-                token = GenerateTokens(loginRequest.UserName);
+                LoginToken token = new LoginToken();
+                var passwordLogin = _authenticationRepository.GetLoginPassword(loginRequest.UserName);
+                string valueHash = string.Empty;
+                if (passwordLogin != null && Hasher.ValidateHash(loginRequest.Password, passwordLogin.PasswordSalt,
+                    passwordLogin.PasswordHash, out valueHash))
+                {
+                    loginRequest.Id = passwordLogin.UserId;
+                    token = GenerateTokens(loginRequest.UserName);
+                }
+
+                //TODO: this should be a async operation and can be made more cross-cutting design feature rather than calling inside the actual feature.
+                loginRequest.LoginDate = DateTime.Now;
+                loginRequest.PasswordHash = valueHash;
+                _logger.LoginLog(loginRequest);
+
+                return token;
             }
-
-            //TODO: this should be a async operation and can be made more cross-cutting design feature rather than calling inside the actual feature.
-            loginRequest.LoginDate = DateTime.Now;
-            loginRequest.PasswordHash = valueHash;
-            _authenticationRepository.LoginLog(loginRequest);
-
-            return token;
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return null;
+            }
         }
 
         public bool ChangePassword(ChangedPassword newPassword)
         {
             bool result = false;
-            if (newPassword.NewPassword == newPassword.ConfirmPassword)
+            try
             {
-                PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(newPassword.UserName);
-                if (Hasher.ValidateHash(newPassword.CurrentPassword, passwordLogin.PasswordSalt,
-                    passwordLogin.PasswordHash, out _))
+                if (newPassword.NewPassword == newPassword.ConfirmPassword)
                 {
-                    PasswordLogin newPasswordLogin = Hasher.HashPassword(newPassword.NewPassword);
-                    newPasswordLogin.UserId = passwordLogin.UserId;
-                    newPasswordLogin.ChangeDate = DateTime.Now;
-                    passwordLogin = newPasswordLogin;
-                    _authenticationRepository.UpdatePasswordLogin(newPasswordLogin);
-                    result = true;
-                }
+                    PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(newPassword.UserName);
+                    if (Hasher.ValidateHash(newPassword.CurrentPassword, passwordLogin.PasswordSalt,
+                        passwordLogin.PasswordHash, out _))
+                    {
+                        PasswordLogin newPasswordLogin = Hasher.HashPassword(newPassword.NewPassword);
+                        newPasswordLogin.UserId = passwordLogin.UserId;
+                        newPasswordLogin.ChangeDate = DateTime.Now;
+                        passwordLogin = newPasswordLogin;
+                        _authenticationRepository.UpdatePasswordLogin(newPasswordLogin);
+                        result = true;
+                    }
 
-                //TODO: this should be a async operation and can be made more cross-cutting design feature rather than calling inside the actual feature.
-                _authenticationRepository.PasswordChangeLog(passwordLogin);
+                    //TODO: this should be a async operation and can be made more cross-cutting design feature rather than calling inside the actual feature.
+                    _logger.PasswordChangeLog(passwordLogin);
+                }
             }
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return result;
+            }
+
             return result;
         }
 
         public bool LockUnlockUser(LockUnlockUser lockUnlockUser)
         {
-            var isSuccess = _authenticationRepository.LockUnlockUser(lockUnlockUser);
-            _authenticationRepository.LockedUserLog(lockUnlockUser);
-            return isSuccess;
+            try
+            {
+                var isSuccess = _authenticationRepository.LockUnlockUser(lockUnlockUser);
+                _logger.LockedUserLog(lockUnlockUser);
+                return isSuccess;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return false;
+            }
         }
 
         public List<LoginHistory> GetLoginHistory(int userId)
         {
-            return _authenticationRepository.GetLoginHistory(userId);
+            try
+            {
+                return _authenticationRepository.GetLoginHistory(userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return null;
+            }
         }
 
         public RefreshedAccessToken RefreshToken(string authorization)
         {
-            var refreshToken = authorization.Substring(authorization.IndexOf(' ') + 1);
+            try
+            {
+                var refreshToken = authorization.Substring(authorization.IndexOf(' ') + 1);
 
-            if (new JwtSecurityTokenHandler().ReadToken(refreshToken) is JwtSecurityToken jwt)
-                return GenerateRefreshedAccessToken(jwt.Subject);
+                if (new JwtSecurityTokenHandler().ReadToken(refreshToken) is JwtSecurityToken jwt)
+                {
+                    return GenerateRefreshedAccessToken(jwt.Subject);
+                }
 
-            return null;
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return null;
+            }
         }
 
         public bool SendOtp(string userName)
         {
-            PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(userName);
-            var user = _userRepository.Get(passwordLogin.UserId);
-            string otp = GenericUtil.GenerateOTP().ToString();
-            new KromeEmail().SendEmail(user.Email, otp, GenericUtil.OTPTransType.PasswordReset);
-            new KromeSMS().SendSMS(user.Mobile, otp, GenericUtil.OTPTransType.PasswordReset);
-
-            UserValidationOtp userValidationOtp = new UserValidationOtp
+            try
             {
-                UserId = passwordLogin.UserId,
-                OrgId = user.OrgId,
-                otp = otp,
-                OtpAuthenticatedTime = DateTime.Now,
-                OtpGeneratedTime = DateTime.Now,
-                Status = (int)GenericUtil.OTPTransType.PasswordReset,
-                Type = GenericUtil.OTPTransType.PasswordReset.ToString()
-            };
+                PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(userName);
+                var user = _userRepository.Get(passwordLogin.UserId);
+                string otp = GenericUtil.GenerateOTP().ToString();
+                new KromeEmail().SendEmail(user.Email, otp, GenericUtil.OTPTransType.PasswordReset);
+                new KromeSMS().SendSMS(user.Mobile, otp, GenericUtil.OTPTransType.PasswordReset);
 
-            _authenticationRepository.SaveOtp(userValidationOtp);
+                UserValidationOtp userValidationOtp = new UserValidationOtp
+                {
+                    UserId = passwordLogin.UserId,
+                    OrgId = user.OrgId,
+                    otp = otp,
+                    OtpAuthenticatedTime = DateTime.Now,
+                    OtpGeneratedTime = DateTime.Now,
+                    Status = (int) GenericUtil.OTPTransType.PasswordReset,
+                    Type = GenericUtil.OTPTransType.PasswordReset.ToString()
+                };
 
-            return true;
+                _authenticationRepository.SaveOtp(userValidationOtp);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return false;
+            }
         }
 
         public bool ForgotPassword(ForgotPassword forgotPassword)
         {
             bool result = false;
-            if (forgotPassword.NewPassword == forgotPassword.ConfirmPassword)
+            try
             {
-                PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(forgotPassword.UserName);
-                var otpDetails = _authenticationRepository.GetOtp(passwordLogin.UserId);
-                if (otpDetails.otp == forgotPassword.otp)
+                if (forgotPassword.NewPassword == forgotPassword.ConfirmPassword)
                 {
-                    var newPasswordLogin = Hasher.HashPassword(forgotPassword.NewPassword);
-                    newPasswordLogin.UserId = passwordLogin.UserId;
-                    newPasswordLogin.ChangeDate = DateTime.Now;
-                    passwordLogin = newPasswordLogin;
-                    _authenticationRepository.UpdatePasswordLogin(newPasswordLogin);
-                    result = true;
-                }
+                    PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(forgotPassword.UserName);
+                    var otpDetails = _authenticationRepository.GetOtp(passwordLogin.UserId);
+                    if (otpDetails.otp == forgotPassword.otp)
+                    {
+                        var newPasswordLogin = Hasher.HashPassword(forgotPassword.NewPassword);
+                        newPasswordLogin.UserId = passwordLogin.UserId;
+                        newPasswordLogin.ChangeDate = DateTime.Now;
+                        passwordLogin = newPasswordLogin;
+                        _authenticationRepository.UpdatePasswordLogin(newPasswordLogin);
+                        result = true;
+                    }
 
-                //TODO: this should be a async operation and can be made more cross-cutting design feature rather than calling inside the actual feature.
-                _authenticationRepository.PasswordChangeLog(passwordLogin);
+                    //TODO: this should be a async operation and can be made more cross-cutting design feature rather than calling inside the actual feature.
+                    _logger.PasswordChangeLog(passwordLogin);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return result;
             }
 
             return result;
@@ -143,36 +257,79 @@ namespace Neubel.Wow.Win.Authentication.Services
 
         public bool ValidateOtp(string userName, string otp)
         {
-            PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(userName);
-            var otpDetails = _authenticationRepository.GetOtp(passwordLogin.UserId);
-            if (otpDetails.otp == otp)
-                return true;
-            return false;
+            try
+            {
+                PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(userName);
+                var otpDetails = _authenticationRepository.GetOtp(passwordLogin.UserId);
+                if (otpDetails.otp == otp)
+                    return true;
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return false;
+            }
         }
 
         public bool UpdateMobileConfirmationStatus(string userName, string otp)
         {
-            PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(userName);
-            var otpDetails = _authenticationRepository.GetOtp(passwordLogin.UserId);
-            if (otpDetails.otp == otp)
+            try
             {
-                _authenticationRepository.UpdateMobileConfirmationStatus(passwordLogin.UserId, true);
-                return true;
+                PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(userName);
+                var otpDetails = _authenticationRepository.GetOtp(passwordLogin.UserId);
+                if (otpDetails.otp == otp)
+                {
+                    _authenticationRepository.UpdateMobileConfirmationStatus(passwordLogin.UserId, true);
+                    return true;
+                }
+                return false;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return false;
+            }
         }
         public bool UpdateEmailConfirmationStatus(string userName, string otp)
         {
-            PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(userName);
-            var otpDetails = _authenticationRepository.GetOtp(passwordLogin.UserId);
-            if (otpDetails.otp == otp)
+            try
             {
-                _authenticationRepository.UpdateEmailConfirmationStatus(passwordLogin.UserId, true);
-                return true;
+                PasswordLogin passwordLogin = _authenticationRepository.GetLoginPassword(userName);
+                var otpDetails = _authenticationRepository.GetOtp(passwordLogin.UserId);
+                if (otpDetails.otp == otp)
+                {
+                    _authenticationRepository.UpdateEmailConfirmationStatus(passwordLogin.UserId, true);
+                    return true;
+                }
+                return false;
             }
-
-            return false;
+            catch (Exception ex)
+            {
+                _logger.LogException(new ExceptionLog
+                {
+                    ExceptionDate = DateTime.Now,
+                    ExceptionMsg = ex.Message,
+                    ExceptionSource = ex.Source,
+                    ExceptionType = "UserService",
+                    FullException = ex.StackTrace
+                });
+                return false;
+            }
         }
         #endregion
 
@@ -217,7 +374,7 @@ namespace Neubel.Wow.Win.Authentication.Services
             _authenticationRepository.SaveLoginToken(loginToken);
 
             //TODO: this should be a async operation and can be made more cross-cutting design feature rather than calling inside the actual feature.
-            _authenticationRepository.LoginTokenLog(loginToken);
+            _logger.LoginTokenLog(loginToken);
 
             return loginToken;
         }
@@ -249,7 +406,7 @@ namespace Neubel.Wow.Win.Authentication.Services
             _authenticationRepository.UpdateAccessToken(refreshedAccessToken);
 
             //TODO: this should be a async operation and can be made more cross-cutting design feature rather than calling inside the actual feature.
-            _authenticationRepository.LoginTokenLogForRefreshToken(refreshedAccessToken);
+            _logger.LoginTokenLogForRefreshToken(refreshedAccessToken);
 
             return refreshedAccessToken;
         }
@@ -265,12 +422,13 @@ namespace Neubel.Wow.Win.Authentication.Services
                 new Claim(JwtRegisteredClaimNames.Iat, Helpers.ToUnixEpochDate(dateTime).ToString(), ClaimValueTypes.Integer64)
             };
 
-            var roles = _roleService.Get(sub);
+            var roles = _roleRepository.GetRoleWithOrg(sub);
             foreach (var role in roles)
             {
-                claims.Add(new Claim(ClaimTypes.Role, role));
+                claims.Add(new Claim(ClaimTypes.Role, role.Item2));
             }
 
+            claims.Add(new Claim("OrganizationId", roles[0].Item1.ToString()));
             return claims;
         }
         #endregion

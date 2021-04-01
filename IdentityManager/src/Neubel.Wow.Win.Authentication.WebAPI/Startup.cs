@@ -12,6 +12,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Neubel.Wow.Win.Authentication.WebAPI.Mappers;
 using Neubel.Wow.Win.Authentication.Data.Repository;
+using Neubel.Wow.Win.Authentication.Data.Repository.Interfaces;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI
 {
@@ -45,7 +46,9 @@ namespace Neubel.Wow.Win.Authentication.WebAPI
             services.AddScoped<Core.Interfaces.IUserService, Services.UserService>();
             services.AddScoped<Core.Interfaces.IOrganizationService, Services.OrganizationService>();
             services.AddScoped<Core.Interfaces.IRoleService, Services.RoleService>();
+            services.AddScoped<Core.Interfaces.IUserRoleService, Services.UserRoleService>();
             services.AddScoped<Core.Interfaces.ISecurityParameterService, Services.SecurityParameterService>();
+            services.AddScoped<Core.Interfaces.ILogger, Infrastructure.Logging.Logger>();
 
             //DAL
             services.AddScoped<Infrastructure.IConnectionFactory, Infrastructure.ConnectionFactory>();
@@ -54,6 +57,8 @@ namespace Neubel.Wow.Win.Authentication.WebAPI
             services.AddScoped<IOrganizationRepository, OrganizationRepository>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<ISecurityParameterRepository, SecurityParameterRepository>();
+            services.AddScoped<ILoggerRepository, LoggerRepository>();
+            services.AddScoped<IUserRoleRepository, UserRoleRepository>();
 
             // Mappers
             services.AddAutoMapper(typeof(MappingProfile));

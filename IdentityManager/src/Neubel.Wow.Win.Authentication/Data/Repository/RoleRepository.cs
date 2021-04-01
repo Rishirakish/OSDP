@@ -55,7 +55,16 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
 
             return db.Query<string>(query, new { userName }).ToList();
         }
+        public List<(int, string)> GetRoleWithOrg(string userName)
+        {
+            using IDbConnection db = _connectionFactory.GetConnection;
+            string query = @"Select u.OrgId, r.Name from [User] u 
+                                inner join [UserRole] ur on u.id = ur.userId
+                                inner join [Role] r on r.Id = ur.RoleId
+                             where u.UserName=@userName";
 
+            return db.Query<(int, string)>(query, new { userName }).ToList();
+        }
         public bool Delete(int id)
         {
             string query = @"update [Role] Set 

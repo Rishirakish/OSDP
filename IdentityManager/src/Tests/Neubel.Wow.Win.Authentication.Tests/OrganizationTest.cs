@@ -8,6 +8,7 @@ using Neubel.Wow.Win.Authentication.WebAPI.Controllers;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace Neubel.Wow.Win.Authentication.Tests
 {
@@ -51,10 +52,16 @@ namespace Neubel.Wow.Win.Authentication.Tests
             organizationRepo.Setup(mock => mock.Insert(organizations[0])).Returns(organizations[0].Id);
             organizationRepo.Setup(mock => mock.Delete(1)).Returns(true);
 
+            //mock not required service.
+            Mock<ILogger> logger = new Mock<ILogger>();
+            logger.Setup(m => m.LogException(new Core.Model.ExceptionLog())).Returns(Task.FromResult(true));
+            logger.Setup(m => m.LogTransaction(new Core.Model.TransactionLog())).Returns(Task.FromResult(true));
+            logger.Setup(m => m.LogUsage(new Core.Model.UsageLog())).Returns(Task.FromResult(true));
+
             // resolve dependencies.
             _mapper = mapper.Object;
             _organizationRepository = organizationRepo.Object;
-            _organizationService = new OrganizationService(_organizationRepository);
+            _organizationService = new OrganizationService(_organizationRepository, logger.Object);
         }
 
         [Test]
