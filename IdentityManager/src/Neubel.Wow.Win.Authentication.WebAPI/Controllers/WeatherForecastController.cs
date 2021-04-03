@@ -9,7 +9,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    public class WeatherForecastController : ControllerBase
+    public class WeatherForecastController : NeubelWowBaseApiController
     {
         private static readonly string[] Summaries = new[]
         {

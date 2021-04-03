@@ -3,12 +3,13 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neubel.Wow.Win.Authentication.Core.Model.Roles;
+using Neubel.Wow.Win.Authentication.WebAPI.Common;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserRoleController : ControllerBase
+    public class UserRoleController : NeubelWowBaseApiController
     {
         private readonly Core.Interfaces.IUserRoleService _userRoleService;
         private readonly IMapper _mapper;
@@ -22,11 +23,11 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// Get all user roles.
         /// </summary>
         /// <returns></returns>
-        [Authorize(Roles = UserRoles.ApplicationAdmin + "," + UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.ApplicationAdmin, UserRoles.Admin })]
         [HttpGet]
         public IActionResult Get()
         {
-            List<Core.Model.UserRole> userRoles = _userRoleService.Get();
+            List<Core.Model.UserRole> userRoles = _userRoleService.Get(SessionContext);
             var userRolesDto = _mapper.Map<List<Core.Model.UserRole>, List<DTO.UserRole>>(userRoles);
             return Ok(userRolesDto);
         }
@@ -35,28 +36,29 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Roles = UserRoles.ApplicationAdmin + "," + UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.ApplicationAdmin, UserRoles.Admin })]
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            List<Core.Model.UserRole> userRoles = _userRoleService.Get(id);
+            List<Core.Model.UserRole> userRoles = _userRoleService.Get(SessionContext, id);
             var userRolesDto = _mapper.Map< List<Core.Model.UserRole>, List<DTO.UserRole>>(userRoles);
             return Ok(userRolesDto);
         }
 
-        [Authorize(Roles = UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.Admin })]
         [HttpPost]
         public IActionResult Post(DTO.UserRole userRole)
         {
             var userRoleModel = _mapper.Map<DTO.UserRole, Core.Model.UserRole>(userRole);
-            int id = _userRoleService.Add(userRoleModel);
+            int id = _userRoleService.Add(SessionContext, userRoleModel);
             return Ok(id);
         }
+
         [HttpDelete("{id}")]
-        [Authorize(Roles = UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.Admin })]
         public IActionResult Delete(int id)
         {
-            bool result = _userRoleService.Delete(id);
+            bool result = _userRoleService.Delete(SessionContext, id);
             return Ok(result);
         }
     }

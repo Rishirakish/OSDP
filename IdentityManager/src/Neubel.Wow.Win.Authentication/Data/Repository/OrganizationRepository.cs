@@ -2,6 +2,7 @@
 using System.Data;
 using System.Linq;
 using Dapper;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Model;
 using Neubel.Wow.Win.Authentication.Infrastructure;
 
@@ -34,15 +35,15 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
             using IDbConnection db = _connectionFactory.GetConnection;
             return db.Execute(query, organization);
         }
-        public List<Organization> Get()
+        public List<Organization> Get(SessionContext sessionContext)
         {
             using IDbConnection db = _connectionFactory.GetConnection;
-            return db.Query<Organization>("Select * From [Organization]").ToList();
+            return db.Query<Organization>("Select * From [Organization] where Id=@OrganizationId OR @OrganizationId = 0", new { sessionContext.OrganizationId }).ToList();
         }
-        public Organization Get(int id)
+        public Organization Get(SessionContext sessionContext, int id)
         {
             using IDbConnection db = _connectionFactory.GetConnection;
-            return db.Query<Organization>("Select * From [Organization] where Id=@id", new { id }).FirstOrDefault();
+            return db.Query<Organization>("Select * From [Organization] where Id=@id and (Id=@OrganizationId OR @OrganizationId = 0)", new { id, sessionContext.OrganizationId }).FirstOrDefault();
         }
         public bool Delete(int id)
         {

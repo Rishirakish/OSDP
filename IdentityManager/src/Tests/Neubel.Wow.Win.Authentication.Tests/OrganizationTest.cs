@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Interfaces;
 using Neubel.Wow.Win.Authentication.Data.Repository;
 using Neubel.Wow.Win.Authentication.Services;
@@ -39,6 +40,7 @@ namespace Neubel.Wow.Win.Authentication.Tests
         public void Setup()
         {
             // setup test data
+            SessionContext sessionContext = new SessionContext();
             //mock mapper.
             Mock<IMapper> mapper = new Mock<IMapper>();
             mapper.Setup(m => m.Map<List<Core.Model.Organization>, List<WebAPI.DTO.Organization>>(organizations)).Returns(MapOrganizations(organizations));
@@ -47,8 +49,8 @@ namespace Neubel.Wow.Win.Authentication.Tests
 
             //mock repository\DB calls.
             Mock<IOrganizationRepository> organizationRepo = new Mock<IOrganizationRepository>();
-            organizationRepo.Setup(mock => mock.Get()).Returns(organizations);
-            organizationRepo.Setup(mock => mock.Get(1)).Returns(organizations[0]);
+            organizationRepo.Setup(mock => mock.Get(sessionContext)).Returns(organizations);
+            organizationRepo.Setup(mock => mock.Get(sessionContext, 1)).Returns(organizations[0]);
             organizationRepo.Setup(mock => mock.Insert(organizations[0])).Returns(organizations[0].Id);
             organizationRepo.Setup(mock => mock.Delete(1)).Returns(true);
 

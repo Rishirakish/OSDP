@@ -13,7 +13,7 @@ namespace Neubel.Wow.Win.Authentication.Core.Interfaces
         /// <param name="user"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        RequestResult<bool> Insert(string authorization, User user, string password);
+        RequestResult<bool> Insert(SessionContext SessionContext, User user, string password);
 
         /// <summary>
         /// Update user.
@@ -21,19 +21,19 @@ namespace Neubel.Wow.Win.Authentication.Core.Interfaces
         /// <param name="id"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        int Update(int id, User user);
+        int Update(SessionContext sessionContext, int id, User user);
         /// <summary>
         /// Get all users.
         /// </summary>
         /// <returns></returns>
-        List<User> Get();
+        List<User> Get(SessionContext sessionContext);
         /// <summary>
         /// Get user by id.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        User Get(int id);
-        bool ActivateDeactivateUser(ActivateDeactivateUser activateDeactivateUser);
-        bool Delete(int id);
+        User Get(SessionContext sessionContext, int id);
+        bool ActivateDeactivateUser(SessionContext sessionContext, ActivateDeactivateUser activateDeactivateUser);
+        bool Delete(SessionContext sessionContext, int id);
     }
 }

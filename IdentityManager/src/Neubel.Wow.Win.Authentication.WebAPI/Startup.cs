@@ -49,7 +49,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI
             services.AddScoped<Core.Interfaces.IUserRoleService, Services.UserRoleService>();
             services.AddScoped<Core.Interfaces.ISecurityParameterService, Services.SecurityParameterService>();
             services.AddScoped<Core.Interfaces.ILogger, Infrastructure.Logging.Logger>();
-
+            
             //DAL
             services.AddScoped<Infrastructure.IConnectionFactory, Infrastructure.ConnectionFactory>();
             services.AddScoped<IAuthenticationRepository, AuthenticationRepository>();

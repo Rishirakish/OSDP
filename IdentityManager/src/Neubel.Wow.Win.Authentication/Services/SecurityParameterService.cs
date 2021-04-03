@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Interfaces;
 using Neubel.Wow.Win.Authentication.Core.Model;
 using Neubel.Wow.Win.Authentication.Data.Repository;
@@ -17,11 +18,11 @@ namespace Neubel.Wow.Win.Authentication.Services
         }
 
         #region Public Methods.
-        public List<SecurityParameter> Get()
+        public List<SecurityParameter> Get(SessionContext sessionContext)
         {
             try
             {
-                return _securityParameterRepository.Get();
+                return _securityParameterRepository.Get(sessionContext);
             }
             catch (Exception ex)
             {
@@ -36,11 +37,11 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return null;
             }
         }
-        public SecurityParameter Get(int id)
+        public SecurityParameter Get(SessionContext sessionContext, int id)
         {
             try
             {
-                return _securityParameterRepository.Get(id);
+                return _securityParameterRepository.Get(sessionContext,id);
             }
             catch (Exception ex)
             {
@@ -55,10 +56,14 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return null;
             }
         }
-        public int Insert(SecurityParameter securityParameter)
+        public int Insert(SessionContext sessionContext, SecurityParameter securityParameter)
         {
             try
             {
+                if (!Helpers.IsInOrganizationContext(sessionContext, securityParameter.OrgId))
+                {
+                    return 0;
+                }
                 return _securityParameterRepository.Insert(securityParameter);
             }
             catch (Exception ex)
@@ -74,18 +79,22 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return 0;
             }
         }
-        public int Update(int id, SecurityParameter updatedSecurityParameter)
+        public int Update(SessionContext sessionContext, int id, SecurityParameter securityParameter)
         {
             try
             {
-                SecurityParameter savedSecurityParameter = _securityParameterRepository.Get(id);
-                if (savedSecurityParameter != null)
+                if (!Helpers.IsInOrganizationContext(sessionContext, securityParameter.OrgId))
                 {
-                    updatedSecurityParameter.Id = id;
-                    if (!savedSecurityParameter.Equals(updatedSecurityParameter))
-                        return _securityParameterRepository.Update(updatedSecurityParameter);
+                    return 0;
                 }
 
+                SecurityParameter savedSecurityParameter = _securityParameterRepository.Get(sessionContext, id);
+                if (savedSecurityParameter != null)
+                {
+                    securityParameter.Id = id;
+                    if (!savedSecurityParameter.Equals(securityParameter))
+                        return _securityParameterRepository.Update(securityParameter);
+                }
                 return 0;
             }
             catch (Exception ex)

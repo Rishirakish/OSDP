@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Interfaces;
 using Neubel.Wow.Win.Authentication.Core.Model;
+using Neubel.Wow.Win.Authentication.Data.Repository;
 using Neubel.Wow.Win.Authentication.Data.Repository.Interfaces;
 
 namespace Neubel.Wow.Win.Authentication.Services
@@ -9,18 +11,24 @@ namespace Neubel.Wow.Win.Authentication.Services
     public class UserRoleService : IUserRoleService
     {
         private readonly IUserRoleRepository _userRoleRepository;
+        private readonly IUserRepository _userRepository;
         private readonly ILogger _logger;
 
-        public UserRoleService(IUserRoleRepository userRoleRepository, ILogger logger)
+        public UserRoleService(IUserRoleRepository userRoleRepository, ILogger logger, IUserRepository userRepository)
         {
             _userRoleRepository = userRoleRepository;
             _logger = logger;
+            _userRepository = userRepository;
         }
 
-        public int Add(UserRole userRole)
+        public int Add(SessionContext sessionContext, UserRole userRole)
         {
             try
             {
+                int userOrganizationId = _userRepository.GetUserOrganization(userRole.UserId);
+                if (sessionContext.OrganizationId != userOrganizationId)
+                    return 0;
+
                 return _userRoleRepository.Add(userRole);
             }
             catch (Exception ex)
@@ -37,7 +45,7 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
         }
 
-        public bool Delete(int id)
+        public bool Delete(SessionContext sessionContext, int id)
         {
             try
             {
@@ -57,11 +65,11 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
         }
 
-        public List<UserRole> Get()
+        public List<UserRole> Get(SessionContext sessionContext)
         {
             try
             {
-                return _userRoleRepository.Get();
+                return _userRoleRepository.Get(sessionContext);
             }
             catch (Exception ex)
             {
@@ -77,11 +85,11 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
         }
 
-        public List<UserRole> Get(int userId)
+        public List<UserRole> Get(SessionContext sessionContext, int userId)
         {
             try
             {
-                return _userRoleRepository.Get(userId);
+                return _userRoleRepository.Get(sessionContext, userId);
             }
             catch (Exception ex)
             {

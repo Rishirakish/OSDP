@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Interfaces;
 using Neubel.Wow.Win.Authentication.Core.Model;
 using Neubel.Wow.Win.Authentication.Data.Repository;
@@ -101,11 +102,11 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return null;
             }
         }
-        public List<string> Get(string userName)
+        public List<string> Get(SessionContext sessionContext, string userName)
         {
             try
             {
-                return _roleRepository.Get(userName);
+                return _roleRepository.Get(sessionContext, userName);
             }
             catch (Exception ex)
             {

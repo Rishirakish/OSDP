@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Model;
 
 namespace Neubel.Wow.Win.Authentication.Core.Interfaces
@@ -7,7 +8,7 @@ namespace Neubel.Wow.Win.Authentication.Core.Interfaces
     {
         List<Role> Get();
         Role Get(int id);
-        List<string> Get(string userName);
+        List<string> Get(SessionContext sessionContext, string userName);
         int Insert(Role roleModel);
         int Update(int id, Role updatedRole);
         bool Delete(int id);

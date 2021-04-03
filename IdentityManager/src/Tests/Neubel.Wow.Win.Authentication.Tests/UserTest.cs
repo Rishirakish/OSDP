@@ -10,6 +10,7 @@ using Neubel.Wow.Win.Authentication.Services;
 using Neubel.Wow.Win.Authentication.WebAPI.Controllers;
 using NUnit.Framework;
 using Neubel.Wow.Win.Authentication.WebAPI.DTO;
+using Neubel.Wow.Win.Authentication.Common;
 
 namespace Neubel.Wow.Win.Authentication.Tests
 {
@@ -55,7 +56,7 @@ namespace Neubel.Wow.Win.Authentication.Tests
         public void Setup()
         {
             // setup test data
-
+            SessionContext sessionContext = new SessionContext();
             //mock mapper.
             Mock<IMapper> mapper = new Mock<IMapper>();
             mapper.Setup(m => m.Map<List<Core.Model.User>, List<WebAPI.DTO.User>>(users)).Returns(MapUsers(users));
@@ -64,14 +65,14 @@ namespace Neubel.Wow.Win.Authentication.Tests
 
             //mock repository\DB calls.
             Mock<IUserRepository> userRepo = new Mock<IUserRepository>();
-            userRepo.Setup(mock => mock.Get()).Returns(users);
-            userRepo.Setup(mock => mock.Get(1)).Returns(users[0]);
+            userRepo.Setup(mock => mock.Get(new Common.SessionContext())).Returns(users);
+            userRepo.Setup(mock => mock.Get(new Common.SessionContext(), 1)).Returns(users[0]);
             userRepo.Setup(mock => mock.Insert(users[0], passwordLogin)).Returns(users[0].Id);
             userRepo.Setup(mock => mock.Delete(1)).Returns(true);
             userRepo.Setup(mock => mock.Update(users[0])).Returns(users[0].Id);
 
             Mock<ISecurityParameterRepository> securityParameterRepo = new Mock<ISecurityParameterRepository>();
-            securityParameterRepo.Setup(m => m.Get(users[0].OrgId)).Returns(GetSecurityParameter());
+            securityParameterRepo.Setup(m => m.Get(sessionContext, users[0].OrgId)).Returns(GetSecurityParameter());
             
             //mock not required service.
             Mock<ILogger> logger = new Mock<ILogger>();

@@ -3,13 +3,13 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neubel.Wow.Win.Authentication.Core.Model.Roles;
-
+using Neubel.Wow.Win.Authentication.WebAPI.Common;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class RoleController : ControllerBase
+    public class RoleController : NeubelWowBaseApiController
     {
         private readonly Core.Interfaces.IRoleService _roleService;
         private readonly IMapper _mapper;
@@ -23,7 +23,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// Get all roles.
         /// </summary>
         /// <returns></returns>
-        [Authorize(Roles = UserRoles.Sysadmin + "," + UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.Admin })]
         [HttpGet]
         public IActionResult Get()
         {
@@ -36,7 +36,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Roles = UserRoles.Sysadmin + "," + UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.Admin })]
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {

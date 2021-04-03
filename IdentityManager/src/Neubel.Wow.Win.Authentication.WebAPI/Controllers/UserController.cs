@@ -4,12 +4,13 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neubel.Wow.Win.Authentication.Core.Model.Roles;
+using Neubel.Wow.Win.Authentication.WebAPI.Common;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UserController : NeubelWowBaseApiController
     {
         private readonly Core.Interfaces.IUserService _userService;
         private readonly IMapper _mapper;
@@ -23,11 +24,11 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// Get all users.
         /// </summary>
         /// <returns></returns>
-        [Authorize(Roles = UserRoles.ApplicationAdmin + "," + UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.ApplicationAdmin, UserRoles.Admin })]
         [HttpGet]
         public IActionResult Get()
         {
-            List<Core.Model.User> users = _userService.Get();
+            List<Core.Model.User> users = _userService.Get(SessionContext);
             var userDto = _mapper.Map<List<Core.Model.User>, List<DTO.User>>(users);
             return Ok(userDto);
         }
@@ -36,11 +37,11 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize(Roles = UserRoles.ApplicationAdmin + "," + UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.ApplicationAdmin, UserRoles.Admin })]
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Core.Model.User user = _userService.Get(id);
+            Core.Model.User user = _userService.Get(SessionContext, id);
             var userDto = _mapper.Map<Core.Model.User, DTO.User>(user);
             return Ok(userDto);
         }
@@ -49,13 +50,12 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        [Authorize(Roles = UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.Admin })]
         [HttpPost]
         public IActionResult Post(DTO.User user)
         {
-            string authorization = HttpContext.Request.Headers["Authorization"].SingleOrDefault();
             var userModel = _mapper.Map<DTO.User, Core.Model.User>(user);
-            var result = _userService.Insert(authorization, userModel, user.Password);
+            var result = _userService.Insert(SessionContext, userModel, user.Password);
             if (result.IsSuccessful)
                 return Ok(result.RequestedObject);
             return Ok(result.ValidationMessages);
@@ -68,11 +68,11 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <returns></returns>
         // PUT api/<UserController>/5
         [HttpPut("{id}")]
-        [Authorize(Roles = UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.Admin })]
         public IActionResult Put(int id, [FromBody] DTO.User user)
         {
             var updatedUser = _mapper.Map<DTO.User, Core.Model.User>(user);
-            return Ok(_userService.Update(id, updatedUser));
+            return Ok(_userService.Update(SessionContext, id, updatedUser));
         }
         /// <summary>
         /// Delete an user(soft delete).
@@ -80,10 +80,10 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("{id}")]
-        [Authorize(Roles = UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.Admin })]
         public IActionResult Delete(int id)
         {
-            bool result = _userService.Delete(id);
+            bool result = _userService.Delete(SessionContext, id);
             return Ok(result);
         }
         /// <summary>
@@ -93,10 +93,11 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("activate")]
-        [Authorize(Roles = UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.Admin })]
         public IActionResult Activate(string userName)
         {
-            bool result = _userService.ActivateDeactivateUser(new Core.Model.ActivateDeactivateUser{ UserName = userName, IsActive = true});
+            var activateDeactivateUser = new Core.Model.ActivateDeactivateUser { UserName = userName, IsActive = true };
+            bool result = _userService.ActivateDeactivateUser(SessionContext, activateDeactivateUser);
             return Ok(result);
         }
         /// <summary>
@@ -106,10 +107,11 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <returns></returns>
         [HttpPost]
         [Route("deactivate")]
-        [Authorize(Roles = UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.Sysadmin, UserRoles.Admin })]
         public IActionResult Deactivate(string userName)
         {
-            bool result = _userService.ActivateDeactivateUser(new Core.Model.ActivateDeactivateUser { UserName = userName, IsActive = false });
+            var activateDeactivateUser = new Core.Model.ActivateDeactivateUser { UserName = userName, IsActive = false };
+            bool result = _userService.ActivateDeactivateUser(SessionContext, activateDeactivateUser);
             return Ok(result);
         }
 

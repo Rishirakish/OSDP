@@ -12,6 +12,7 @@ namespace Neubel.Wow.Win.Authentication.Services
         private readonly IUserRepository _userRepository;
         private readonly ISecurityParameterRepository _securityParameterRepository;
         private readonly ILogger _logger;
+
         public UserService(IUserRepository userRepository, ISecurityParameterRepository securityParameterRepository, ILogger logger)
         {
             _userRepository = userRepository;
@@ -20,21 +21,19 @@ namespace Neubel.Wow.Win.Authentication.Services
         }
 
         #region Public Methods.
-        public RequestResult<bool> Insert(string authorization, User user, string password)
+        public RequestResult<bool> Insert(SessionContext sessionContext, User user, string password)
         {
             List<ValidationMessage> validationMessages = new List<ValidationMessage>();
             try
             {
-                int organizationId = Helpers.GetOrganizationContextForSignedInUser(authorization);
-
-                if (organizationId != user.OrgId)
+                if (!Helpers.IsInOrganizationContext(sessionContext, user.OrgId))
                 {
                     var error = new ValidationMessage { Reason = "You can only register users in your organization", Severity = ValidationSeverity.Error};
                     validationMessages.Add(error);
                     return new RequestResult<bool>(false, validationMessages);
                 }
 
-                var passwordPolicy = _securityParameterRepository.Get(user.OrgId);
+                var passwordPolicy = _securityParameterRepository.Get(sessionContext, user.OrgId);
                 var validatePassword = Helpers.ValidatePassword(password, passwordPolicy);
                 if (validatePassword.IsSuccessful)
                 {
@@ -58,11 +57,16 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return new RequestResult<bool>(false);
             }
         }
-        public int Update(int id, User user)
+        public int Update(SessionContext sessionContext, int id, User user)
         {
             try
             {
-                User savedUser = _userRepository.Get(id);
+                if (!Helpers.IsInOrganizationContext(sessionContext, user.OrgId))
+                {
+                    return 0;
+                }
+
+                User savedUser = _userRepository.Get(sessionContext, id);
                 if (savedUser != null)
                 {
                     user.Id = id;
@@ -85,11 +89,11 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return 0;
             }
         }
-        public List<User> Get()
+        public List<User> Get(SessionContext sessionContext)
         {
             try
             {
-                return _userRepository.Get();
+                return _userRepository.Get(sessionContext);
             }
             catch (Exception ex)
             {
@@ -104,11 +108,11 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return null;
             }
         }
-        public User Get(int id)
+        public User Get(SessionContext sessionContext, int id)
         {
             try
             {
-                return _userRepository.Get(id);
+                return _userRepository.Get(sessionContext, id);
             }
             catch (Exception ex)
             {
@@ -123,7 +127,7 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return null;
             }
         }
-        public bool ActivateDeactivateUser(ActivateDeactivateUser activateDeactivateUser)
+        public bool ActivateDeactivateUser(SessionContext sessionContext, ActivateDeactivateUser activateDeactivateUser)
         {
             try
             {
@@ -142,7 +146,7 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return false;
             }
         }
-        public bool Delete(int id)
+        public bool Delete(SessionContext sessionContext, int id)
         {
             try
             {

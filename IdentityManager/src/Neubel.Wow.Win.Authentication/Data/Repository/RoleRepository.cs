@@ -2,6 +2,7 @@
 using System.Data;
 using System.Linq;
 using Dapper;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Model;
 using Neubel.Wow.Win.Authentication.Infrastructure;
 
@@ -45,15 +46,15 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
             return db.Query<Role>("Select * From [Role] where Id=@id", new { id }).FirstOrDefault();
         }
 
-        public List<string> Get(string userName)
+        public List<string> Get(SessionContext sessionContext, string userName)
         {
             using IDbConnection db = _connectionFactory.GetConnection;
             string query = @"Select r.Name from [User] u 
                                 inner join [UserRole] ur on u.id = ur.userId
                                 inner join [Role] r on r.Id = ur.RoleId
-                             where u.UserName=@userName";
+                             where u.UserName=@userName and (u.OrgId=@OrganizationId OR @OrganizationId = 0)";
 
-            return db.Query<string>(query, new { userName }).ToList();
+            return db.Query<string>(query, new { userName, sessionContext.OrganizationId }).ToList();
         }
         public List<(int, string)> GetRoleWithOrg(string userName)
         {

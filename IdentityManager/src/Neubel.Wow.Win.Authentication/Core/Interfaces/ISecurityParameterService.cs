@@ -1,14 +1,15 @@
-﻿using Neubel.Wow.Win.Authentication.Core.Model;
+﻿using Neubel.Wow.Win.Authentication.Common;
+using Neubel.Wow.Win.Authentication.Core.Model;
 using System.Collections.Generic;
 
 namespace Neubel.Wow.Win.Authentication.Core.Interfaces
 {
     public interface ISecurityParameterService
     {
-        List<SecurityParameter> Get();
-        SecurityParameter Get(int id);
-        int Insert(SecurityParameter securityParameterModel);
-        int Update(int id, SecurityParameter updatedSecurityParameter);
+        List<SecurityParameter> Get(SessionContext sessionContext);
+        SecurityParameter Get(SessionContext sessionContext, int id);
+        int Insert(SessionContext sessionContext, SecurityParameter securityParameterModel);
+        int Update(SessionContext sessionContext, int id, SecurityParameter updatedSecurityParameter);
         bool Delete(int id);
     }
 }

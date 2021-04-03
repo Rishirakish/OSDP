@@ -2,6 +2,7 @@
 using System.Data;
 using System.Linq;
 using Dapper;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Model;
 using Neubel.Wow.Win.Authentication.Infrastructure;
 
@@ -76,39 +77,47 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
             using IDbConnection db = _connectionFactory.GetConnection;
             return db.Execute(query, user);
         }
-        public List<User> Get()
+        public List<User> Get(SessionContext sessionContext)
         {
             using IDbConnection db = _connectionFactory.GetConnection;
-            return db.Query<User>("Select * From [User]").ToList();
+            return db.Query<User>("Select * From [User] where OrgId=@OrganizationId OR @OrganizationId = 0", new { sessionContext.OrganizationId }).ToList();
         }
+        public User Get(SessionContext sessionContext, int id)
+        {
+            using IDbConnection db = _connectionFactory.GetConnection;
+            return db.Query<User>("Select * From [User] where Id=@id and (OrgId=@OrganizationId OR @OrganizationId = 0)", new {id, sessionContext.OrganizationId }).FirstOrDefault();
+        }
+
         public User Get(int id)
         {
             using IDbConnection db = _connectionFactory.GetConnection;
-            return db.Query<User>("Select * From [User] where Id=@id", new {id}).FirstOrDefault();
+            return db.Query<User>("Select * From [User] where Id=@id", new { id }).FirstOrDefault();
         }
-
         public bool ActivateDeactivateUser(ActivateDeactivateUser activateDeactivateUser)
         {
             string query = @"update [User] Set 
                                 IsActive = @IsActive
-                            Where UserName = @UserName";
+                            Where UserName = @UserName and ( Id=@id and OrgId=@OrganizationId OR @OrganizationId = 0)";
 
             using IDbConnection db = _connectionFactory.GetConnection;
             db.Execute(query, activateDeactivateUser);
             return true;
         }
-
         public bool Delete(int id)
         {
             string query = @"update [User] Set 
                                 IsDeleted = @IsDeleted
-                            Where Id = @Id";
+                            Where Id = @Id and  Id=@id and (OrgId=@OrganizationId OR @OrganizationId = 0)";
 
             using IDbConnection db = _connectionFactory.GetConnection;
             db.Execute(query, new { IsDeleted = true, Id = id });
             return true;
         }
-
+        public int GetUserOrganization(int userId)
+        {
+            using IDbConnection db = _connectionFactory.GetConnection;
+            return db.Query<int>("Select OrgId From [USER] where Id=@id", new { id = userId }).FirstOrDefault();
+        }
         #endregion
     }
 }

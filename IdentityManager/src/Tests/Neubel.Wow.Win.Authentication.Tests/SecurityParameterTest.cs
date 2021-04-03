@@ -5,6 +5,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Interfaces;
 using Neubel.Wow.Win.Authentication.Data.Repository;
 using Neubel.Wow.Win.Authentication.Services;
@@ -57,6 +58,7 @@ namespace Neubel.Wow.Win.Authentication.Tests
         public void Setup()
         {
             // setup test data
+            SessionContext sessionContext = new SessionContext();
             //mock mapper.
             Mock<IMapper> mapper = new Mock<IMapper>();
             mapper.Setup(m => m.Map<List<Core.Model.SecurityParameter>, List<WebAPI.DTO.SecurityParameter>>(securityParameters)).Returns(MapSecurityParameters(securityParameters));
@@ -65,8 +67,8 @@ namespace Neubel.Wow.Win.Authentication.Tests
 
             //mock repository\DB calls.
             Mock<ISecurityParameterRepository> securityParameterRepo = new Mock<ISecurityParameterRepository>();
-            securityParameterRepo.Setup(mock => mock.Get()).Returns(securityParameters);
-            securityParameterRepo.Setup(mock => mock.Get(1)).Returns(securityParameters[0]);
+            securityParameterRepo.Setup(mock => mock.Get(sessionContext)).Returns(securityParameters);
+            securityParameterRepo.Setup(mock => mock.Get(sessionContext, 1)).Returns(securityParameters[0]);
             securityParameterRepo.Setup(mock => mock.Insert(securityParameters[0])).Returns(securityParameters[0].Id);
             securityParameterRepo.Setup(mock => mock.Delete(1)).Returns(true);
             

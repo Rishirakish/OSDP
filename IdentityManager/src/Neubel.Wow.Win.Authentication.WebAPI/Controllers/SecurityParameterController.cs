@@ -4,12 +4,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Neubel.Wow.Win.Authentication.Core.Interfaces;
 using Neubel.Wow.Win.Authentication.Core.Model.Roles;
+using Neubel.Wow.Win.Authentication.WebAPI.Common;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SecurityParameterController : ControllerBase
+    public class SecurityParameterController : NeubelWowBaseApiController
     {
         private readonly ISecurityParameterService _securityParameterService;
         private readonly IMapper _mapper;
@@ -24,10 +25,10 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
-        [Authorize(Roles = UserRoles.ApplicationAdmin + "," + UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.ApplicationAdmin, UserRoles.Admin })]
         public IActionResult Get()
         {
-            List<Core.Model.SecurityParameter> users = _securityParameterService.Get();
+            List<Core.Model.SecurityParameter> users = _securityParameterService.Get(SessionContext);
             var securityParameterDto = _mapper.Map<List<Core.Model.SecurityParameter>, List<DTO.SecurityParameter>>(users);
             return Ok(securityParameterDto);
         }
@@ -37,10 +38,10 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        [Authorize(Roles = UserRoles.ApplicationAdmin + "," + UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.ApplicationAdmin, UserRoles.Admin })]
         public IActionResult Get(int id)
         {
-            Core.Model.SecurityParameter user = _securityParameterService.Get(id);
+            Core.Model.SecurityParameter user = _securityParameterService.Get(SessionContext, id);
             var securityParameterDto = _mapper.Map<Core.Model.SecurityParameter, DTO.SecurityParameter>(user);
             return Ok(securityParameterDto);
         }
@@ -55,7 +56,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         public IActionResult Post([FromBody] DTO.SecurityParameter securityParameter)
         {
             var securityParameterModel = _mapper.Map<DTO.SecurityParameter, Core.Model.SecurityParameter>(securityParameter);
-            var id = _securityParameterService.Insert(securityParameterModel);
+            var id = _securityParameterService.Insert(SessionContext, securityParameterModel);
             return Ok(id);
         }
         /// <summary>
@@ -70,7 +71,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         public IActionResult Put(int id, [FromBody] DTO.SecurityParameter securityParameter)
         {
             var updatedSecurityParameter = _mapper.Map<DTO.SecurityParameter, Core.Model.SecurityParameter>(securityParameter);
-            _securityParameterService.Update(id, updatedSecurityParameter);
+            _securityParameterService.Update(SessionContext, id, updatedSecurityParameter);
             return Ok(id);
         }
         /// <summary>

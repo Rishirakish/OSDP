@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using Dapper;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Model;
 using Neubel.Wow.Win.Authentication.Data.Repository.Interfaces;
 using Neubel.Wow.Win.Authentication.Infrastructure;
@@ -18,20 +19,22 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
             _connectionFactory = connectionFactory;
         }
 
-        public List<UserRole> Get()
+        public List<UserRole> Get(SessionContext sessionContext)
         {
             using IDbConnection db = _connectionFactory.GetConnection;
-            return db.Query<UserRole>(@"Select ur.UserId, u.UserName, ur.RoleId, r.Name as RoleName  From [User] u
+            return db.Query<UserRole>(@"Select ur.UserId, u.UserName, ur.RoleId, r.Name as RoleName  
+                                        From [User] u
                                             inner join [UserRole] ur on u.id=ur.userId
-                                            inner join [Role] r on ur.roleId=r.id").ToList();
+                                            inner join [Role] r on ur.roleId=r.id
+                                        where u.OrgId=@OrganizationId OR @OrganizationId = 0", new { sessionContext.OrganizationId }).ToList();
         }
-        public List<UserRole> Get(int userId)
+        public List<UserRole> Get(SessionContext sessionContext, int userId)
         {
             using IDbConnection db = _connectionFactory.GetConnection;
             return db.Query<UserRole>(@"Select ur.UserId, u.UserName, ur.RoleId, r.Name as RoleName  From [User] u
                                             inner join [UserRole] ur on u.id=ur.userId
                                             inner join [Role] r on ur.roleId=r.id
-                                           where ur.userId=@userId", new{userId}).ToList();
+                                           where ur.userId=@userId and (OrgId=@OrganizationId OR @OrganizationId = 0)", new{userId, sessionContext.OrganizationId}).ToList();
         }
         public int Add(UserRole userRole)
         {

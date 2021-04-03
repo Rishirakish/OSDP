@@ -108,10 +108,15 @@ namespace Neubel.Wow.Win.Authentication.Services
             return result;
         }
 
-        public bool LockUnlockUser(LockUnlockUser lockUnlockUser)
+        public bool LockUnlockUser(SessionContext sessionContext, LockUnlockUser lockUnlockUser)
         {
             try
             {
+                int userOrganizationId = _userRepository.GetUserOrganization(lockUnlockUser.Id);
+                if (!Helpers.IsInOrganizationContext(sessionContext, userOrganizationId))
+                {
+                    return false;
+                }
                 var isSuccess = _authenticationRepository.LockUnlockUser(lockUnlockUser);
                 _logger.LockedUserLog(lockUnlockUser);
                 return isSuccess;
@@ -130,10 +135,15 @@ namespace Neubel.Wow.Win.Authentication.Services
             }
         }
 
-        public List<LoginHistory> GetLoginHistory(int userId)
+        public List<LoginHistory> GetLoginHistory(SessionContext sessionContext, int userId)
         {
             try
             {
+                int userOrganizationId = _userRepository.GetUserOrganization(userId);
+                if (!Helpers.IsInOrganizationContext(sessionContext, userOrganizationId))
+                {
+                    return null;
+                }
                 return _authenticationRepository.GetLoginHistory(userId);
             }
             catch (Exception ex)

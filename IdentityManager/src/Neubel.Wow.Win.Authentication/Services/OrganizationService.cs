@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Interfaces;
 using Neubel.Wow.Win.Authentication.Core.Model;
 using Neubel.Wow.Win.Authentication.Data.Repository;
@@ -17,10 +18,14 @@ namespace Neubel.Wow.Win.Authentication.Services
         }
 
         #region Public Methods.
-        public int Insert(Organization organization)
+        public int Insert(SessionContext sessionContext, Organization organization)
         {
             try
             {
+                if (!Helpers.IsInOrganizationContext(sessionContext, organization.Id))
+                {
+                    return 0;
+                }
                 return _organizationRepository.Insert(organization);
             }
             catch (Exception ex)
@@ -36,11 +41,15 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return 0;
             }
         }
-        public int Update(int id, Organization organization)
+        public int Update(SessionContext sessionContext, int id, Organization organization)
         {
             try
             {
-                Organization savedOrganization = _organizationRepository.Get(id);
+                if (!Helpers.IsInOrganizationContext(sessionContext, organization.Id))
+                {
+                    return 0;
+                }
+                Organization savedOrganization = _organizationRepository.Get(sessionContext, id);
                 if (savedOrganization != null)
                 {
                     organization.Id = id;
@@ -63,11 +72,11 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return 0;
             }
         }
-        public List<Organization> Get()
+        public List<Organization> Get(SessionContext sessionContext)
         {
             try
             {
-                return _organizationRepository.Get();
+                return _organizationRepository.Get(sessionContext);
             }
             catch (Exception ex)
             {
@@ -82,11 +91,11 @@ namespace Neubel.Wow.Win.Authentication.Services
                 return null;
             }
         }
-        public Organization Get(int id)
+        public Organization Get(SessionContext sessionContext, int id)
         {
             try
             {
-                return _organizationRepository.Get(id);
+                return _organizationRepository.Get(sessionContext, id);
             }
             catch (Exception ex)
             {

@@ -2,13 +2,15 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Model.Roles;
+using Neubel.Wow.Win.Authentication.WebAPI.Common;
 
 namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class SecurityController : ControllerBase
+    public class SecurityController : NeubelWowBaseApiController
     {
         private readonly Core.Interfaces.IAuthenticationService _authenticationService;
         private readonly IMapper _mapper;
@@ -86,6 +88,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <summary>
         /// Send Otp.
         /// </summary>
+        /// <param name="sessionContext"></param>
         /// <param name="userName"></param>
         /// <returns></returns>
         [Route("sendOtp")]
@@ -143,10 +146,10 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         /// <returns></returns>
         [Route("loginHistory")]
         [HttpGet]
-        [Authorize(Roles = UserRoles.ApplicationAdmin + "," + UserRoles.Admin)]
+        [Authorized(AllowedRoles = new[] { UserRoles.ApplicationAdmin, UserRoles.Admin })]
         public IActionResult LoginHistory(int userId)
         {
-            return Ok(_authenticationService.GetLoginHistory(userId));
+            return Ok(_authenticationService.GetLoginHistory(SessionContext, userId));
         }
         /// <summary>
         /// Lock user.
@@ -158,7 +161,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         [Authorize(Roles = UserRoles.Admin)]
         public IActionResult Lock(string userName)
         {
-            bool result = _authenticationService.LockUnlockUser(new Core.Model.LockUnlockUser { UserName = userName, Locked = true });
+            bool result = _authenticationService.LockUnlockUser(SessionContext, new Core.Model.LockUnlockUser { UserName = userName, Locked = true });
             return Ok(result);
         }
         /// <summary>
@@ -171,7 +174,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         [Authorize(Roles = UserRoles.Admin)]
         public IActionResult UnLock(string userName)
         {
-            bool result = _authenticationService.LockUnlockUser(new Core.Model.LockUnlockUser { UserName = userName, Locked = false});
+            bool result = _authenticationService.LockUnlockUser(SessionContext, new Core.Model.LockUnlockUser { UserName = userName, Locked = false});
             return Ok(result);
         }
     }

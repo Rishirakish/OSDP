@@ -2,6 +2,7 @@
 using System.Data;
 using System.Linq;
 using Dapper;
+using Neubel.Wow.Win.Authentication.Common;
 using Neubel.Wow.Win.Authentication.Core.Model;
 using Neubel.Wow.Win.Authentication.Infrastructure;
 
@@ -16,16 +17,16 @@ namespace Neubel.Wow.Win.Authentication.Data.Repository
         }
 
         #region Public Methods.
-        public List<SecurityParameter> Get()
+        public List<SecurityParameter> Get(SessionContext sessionContext)
         {
             using IDbConnection db = _connectionFactory.GetConnection;
-            return db.Query<SecurityParameter>("Select * From [PasswordPolicy]").ToList();
+            return db.Query<SecurityParameter>("Select * From [PasswordPolicy] where OrgId=@OrganizationId OR @OrganizationId = 0", new { sessionContext.OrganizationId }).ToList();
         }
 
-        public SecurityParameter Get(int orgId)
+        public SecurityParameter Get(SessionContext sessionContext, int orgId)
         {
             using IDbConnection db = _connectionFactory.GetConnection;
-            return db.Query<SecurityParameter>("Select * From [PasswordPolicy] where OrgId=@orgId", new { orgId }).FirstOrDefault();
+            return db.Query<SecurityParameter>("Select * From [PasswordPolicy] where OrgId=@orgId and (OrgId=@OrganizationId OR @OrganizationId = 0)", new { orgId, sessionContext.OrganizationId }).FirstOrDefault();
         }
 
         public int Insert(SecurityParameter securityParameter)

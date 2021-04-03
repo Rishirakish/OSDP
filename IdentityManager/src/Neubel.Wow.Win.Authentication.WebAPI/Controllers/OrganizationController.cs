@@ -8,7 +8,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrganizationController : ControllerBase
+    public class OrganizationController : NeubelWowBaseApiController
     {
         private readonly Core.Interfaces.IOrganizationService _organizationService;
         private readonly IMapper _mapper;
@@ -26,7 +26,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         [HttpGet]
         public IActionResult Get()
         {
-            List<Core.Model.Organization> organizations = _organizationService.Get();
+            List<Core.Model.Organization> organizations = _organizationService.Get(SessionContext);
             var organizationsDto = _mapper.Map<List<Core.Model.Organization>, List<DTO.Organization>>(organizations);
             return Ok(organizationsDto);
         }
@@ -39,7 +39,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         [HttpGet("{id}")]
         public IActionResult Get(int id)
         {
-            Core.Model.Organization organization = _organizationService.Get(id);
+            Core.Model.Organization organization = _organizationService.Get(SessionContext, id);
             var organizationDto = _mapper.Map<Core.Model.Organization, DTO.Organization>(organization);
             return Ok(organizationDto);
         }
@@ -53,7 +53,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         public IActionResult Post(DTO.Organization organization)
         {
             var organizationModel = _mapper.Map<DTO.Organization, Core.Model.Organization>(organization);
-            var id = _organizationService.Insert(organizationModel);
+            var id = _organizationService.Insert(SessionContext, organizationModel);
             return Ok(id);
         }
         /// <summary>
@@ -68,7 +68,7 @@ namespace Neubel.Wow.Win.Authentication.WebAPI.Controllers
         public IActionResult Put(int id, [FromBody] DTO.Organization organization)
         {
             var updatedOrganization = _mapper.Map<DTO.Organization, Core.Model.Organization>(organization);
-            return Ok(_organizationService.Update(id, updatedOrganization));
+            return Ok(_organizationService.Update(SessionContext, id, updatedOrganization));
         }
         /// <summary>
         /// Delete an organization (soft delete).
